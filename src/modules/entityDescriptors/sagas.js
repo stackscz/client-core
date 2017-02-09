@@ -7,9 +7,9 @@ import {
 	receiveEntityDescriptorsFailure,
 } from './actions';
 
-import type { DefinitionsDictionary } from 'client-core/src/types/DefinitionsDictionary';
-import type { FieldsetsDictionary } from 'client-core/src/types/FieldsetsDictionary';
-import type { Error } from 'client-core/src/types/Error';
+import type { DefinitionsDictionary } from 'client-core/src/utils/types/DefinitionsDictionary';
+import type { FieldsetsDictionary } from 'client-core/src/utils/types/FieldsetsDictionary';
+import type { Error } from 'client-core/src/utils/types/Error';
 import t from 'tcomb';
 
 import { apiContextSelector, apiServiceSelector } from 'client-core/src/modules/api/selectors';

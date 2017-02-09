@@ -4,8 +4,8 @@ import Immutable from 'seamless-immutable';
 import createReducer from 'client-core/src/utils/createReducer';
 import { RECEIVE_ENTITY_DESCRIPTORS } from './actions';
 
-import type { DefinitionsDictionary } from 'client-core/src/types/DefinitionsDictionary';
-import type { FieldsetsDictionary } from 'client-core/src/types/FieldsetsDictionary';
+import type { DefinitionsDictionary } from 'client-core/src/utils/types/DefinitionsDictionary';
+import type { FieldsetsDictionary } from 'client-core/src/utils/types/FieldsetsDictionary';
 
 export default createReducer(
 	t.struct({

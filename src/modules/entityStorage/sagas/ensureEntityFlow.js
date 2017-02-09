@@ -19,9 +19,9 @@ import {
 	receiveEntities,
 } from '../actions';
 
-import type { ApiService } from 'client-core/src/types/ApiService';
-import type { EntityResult } from 'client-core/src/types/EntityResult';
-import type { Error } from 'client-core/src/types/Error';
+import type { ApiService } from 'client-core/src/utils/types/ApiService';
+import type { EntityResult } from 'client-core/src/utils/types/EntityResult';
+import type { Error } from 'client-core/src/utils/types/Error';
 
 export function *ensureEntityTask(action) {
 	const { modelName, where } = action.payload;

@@ -4,7 +4,7 @@ import { take, fork, call, put, select, cancel } from 'redux-saga/effects';
 
 import t from 'tcomb';
 import hash from 'object-hash';
-import type { Error } from 'client-core/src/types/Error';
+import type { Error } from 'client-core/src/utils/types/Error';
 
 import rethrowError from 'client-core/src/utils/rethrowError';
 import isOfType from 'client-core/src/utils/isOfType';

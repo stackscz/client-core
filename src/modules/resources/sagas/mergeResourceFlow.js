@@ -4,12 +4,11 @@ import invariant from 'invariant';
 import { takeEvery } from 'redux-saga';
 import hash from 'object-hash';
 import resolveSubschema from 'client-core/src/modules/resources/utils/resolveSubschema';
-import normalize from 'client-core/src/modules/resources/utils/normalize';
+import normalizeResource from 'client-core/src/modules/resources/utils/normalizeResource';
+import getIdPropertyName from 'client-core/src/modules/resources/utils/getIdPropertyName';
+import stripReadOnlyProperties from 'client-core/src/modules/resources/utils/stripReadOnlyProperties';
 import rethrowError from 'client-core/src/utils/rethrowError';
 
-import {
-	modelIdPropertyNameSelectorFactory,
-} from 'client-core/src/modules/entityDescriptors/selectors';
 import { receiveEntities } from 'client-core/src/modules/entityStorage/actions';
 import { now } from 'client-core/src/utils/sideEffects';
 
@@ -25,80 +24,85 @@ import {
 	receivePersistResourceFailure,
 } from '../actions';
 import {
-	resolvedLinkSelectorFactory,
+	normalizedLinkSelectorFactory,
 	resourceSchemaSelectorFactory,
 	resourceSelectorFactory,
 } from '../selectors';
 
 import findRelationLinkName from 'client-core/src/modules/resources/utils/findRelationLinkName';
-
-const INTERNAL_ID_PROPERTY_NAME = '_id';
+import { INTERNAL_ID_PROPERTY_NAME } from 'client-core/src/modules/resources/constants';
 
 // TODO rename `collectionLink` to `parentLink`
-export function *mergeResourceTask({ payload: { link, data, collectionLink } }) {
+export function *mergeResourceTask({ payload: { link, data: inputData, collectionLink } }) {
 	// determine model name of resource
 	const resourceSchema = link ? yield select(resourceSchemaSelectorFactory(link)) : undefined;
 	let collectionResourceSchema;
 	if (collectionLink) {
 		collectionResourceSchema = yield select(resourceSchemaSelectorFactory(collectionLink));
 	}
-	let modelName;
-	if (resourceSchema && !collectionResourceSchema) {
-		modelName = g(resourceSchema, 'x-model', g(resourceSchema, 'items.x-model'));
-	} else if (collectionResourceSchema) {
-		modelName = g(
-			collectionResourceSchema,
-			'x-model',
-			g(resolveSubschema(collectionResourceSchema, 'items'), 'x-model')
-		);
-	}
+
+	let finalResourceSchema = resourceSchema || resolveSubschema(collectionResourceSchema, 'items');
 
 	// determine id property of model by name
-	const idPropertyNameSelector = yield call(
-		modelIdPropertyNameSelectorFactory,
-		modelName,
-	);
-	let idPropertyName = yield select(idPropertyNameSelector);
-	// let entityHasOwnIdProperty = true;
+	let idPropertyName = getIdPropertyName(finalResourceSchema);
+	// let resourceHasOwnIdProperty = true;
 	if (!idPropertyName) {
 		idPropertyName = INTERNAL_ID_PROPERTY_NAME;
-		// entityHasOwnIdProperty = false;
+		finalResourceSchema = {
+			...finalResourceSchema,
+			properties: {
+				...g(finalResourceSchema, 'properties', {}),
+				[INTERNAL_ID_PROPERTY_NAME]: {
+					type: 'string',
+				},
+			},
+			'x-idPropertyName': INTERNAL_ID_PROPERTY_NAME,
+		};
+		// resourceHasOwnIdProperty = false;
 	}
 
-	const finalResourceSchema = resourceSchema || resolveSubschema(collectionResourceSchema, 'items');
+	// patch data
+	const idValueFormLink = g(link, ['params', idPropertyName]);
+	const idValueFormData = g(inputData, idPropertyName);
+	invariant(
+		!(idValueFormLink && idValueFormData),
+		'mergeEntityFlow: do not set both `link` and entity id in merged data',
+	);
+	let data = inputData;
+	if (idValueFormLink) {
+		data = {
+			...data,
+			[idPropertyName]: idValueFormLink,
+		};
+	}
+	if (!g(data, idPropertyName)) {
+		const r = yield call(Math.random);
+		data = {
+			...data,
+			[idPropertyName]: hash({ data, r }),
+		};
+	}
+
 
 	// determine resource self link
-	let entityId;
 	const selfLinkName = findRelationLinkName(
 		finalResourceSchema,
 		'self',
 	);
+	// debugger;
 	let selfLink = link;
-	if (selfLink) {
-		entityId = selfLink.params[idPropertyName];
-	} else {
-		if (!entityId) {
-			const r = yield call(Math.random);
-			entityId = hash({ data, r });
-		}
-		const computedSelfLink = yield select(
-			resolvedLinkSelectorFactory(
+	if (!selfLink) {
+		selfLink = yield select(
+			normalizedLinkSelectorFactory(
 				{
 					name: selfLinkName,
-					params: {
-						...data,
-						[idPropertyName]: entityId,
-					},
+					params: data,
 				}
 			)
 		);
-		invariant(computedSelfLink, 'Could not compute self link for name `%s`', selfLinkName);
-
-		selfLink = {
-			name: computedSelfLink.name,
-			params: computedSelfLink.params,
-		};
 	}
+
+	invariant(selfLink, 'Could not compute self link for name `%s`', selfLinkName);
 
 	let resource = yield select(resourceSelectorFactory(selfLink));
 
@@ -106,13 +110,10 @@ export function *mergeResourceTask({ payload: { link, data, collectionLink } }) 
 	// Normalize entity data.
 	//
 	const {
-		result: resultEntityId,
+		result: resourceNormalizationResult,
 		entities: normalizedEntities,
-	} = normalize(
-		{
-			...data,
-			[idPropertyName]: entityId,
-		},
+	} = normalizeResource(
+		data,
 		finalResourceSchema,
 	);
 
@@ -132,8 +133,7 @@ export function *mergeResourceTask({ payload: { link, data, collectionLink } }) 
 				link: selfLink,
 				transient: isUndefined(link) || g(resource, 'transient', false),
 				links: {},
-				modelName,
-				content: resultEntityId,
+				content: resourceNormalizationResult,
 				collectionLink,
 			}
 		)
@@ -143,6 +143,10 @@ export function *mergeResourceTask({ payload: { link, data, collectionLink } }) 
 	const apiDescription = yield select(resourcesModuleStateSelector);
 
 	const ApiService = yield select(resourcesServiceSelector);
+
+
+	const dataToTransfer = stripReadOnlyProperties(data, finalResourceSchema);
+
 	let callResult;
 	if (resource && !resource.transient) {
 		// we have candidate resource to PUT to
@@ -152,7 +156,7 @@ export function *mergeResourceTask({ payload: { link, data, collectionLink } }) 
 				{
 					apiDescription,
 					link: selfLink,
-					data,
+					data: dataToTransfer,
 				}
 			);
 		} catch (error) {
@@ -175,7 +179,7 @@ export function *mergeResourceTask({ payload: { link, data, collectionLink } }) 
 				{
 					apiDescription,
 					link: collectionLink,
-					data,
+					data: dataToTransfer,
 				}
 			);
 		} catch (error) {
@@ -194,23 +198,42 @@ export function *mergeResourceTask({ payload: { link, data, collectionLink } }) 
 		throw 'Could not determine how to merge entity'; // eslint-disable-line
 	}
 
-	const resolvedReceivedSelfLink = yield select(
-		resolvedLinkSelectorFactory(
+	callResult = {
+		...selfLink.params,
+		...callResult,
+	};
+
+	const receivedSelfLink = yield select(
+		normalizedLinkSelectorFactory(
 			{
 				name: selfLinkName,
 				params: callResult,
 			}
 		)
 	);
-	const receivedSelfLink = {
-		name: resolvedReceivedSelfLink.name,
-		params: resolvedReceivedSelfLink.params,
-	};
+	// const receivedSelfLink = normalizedReceivedSelfLink;
+
+	// if (!resourceHasOwnIdProperty) {
+	// 	receivedSelfLink = {
+	// 		...receivedSelfLink,
+	// 		params: {
+	// 			...receivedSelfLink.params,
+	// 			[idPropertyName]: entityId,
+	// 		},
+	// 	};
+	// }
+	//
+	// if (!resourceHasOwnIdProperty) {
+	// 	callResult = {
+	// 		...callResult,
+	// 		[idPropertyName]: entityId,
+	// 	};
+	// }
 
 	const {
-		result: postResultEntityId,
-		entities: normalizedPostResultEntities,
-	} = normalize(
+		result: receivedResourceNormalizationResult,
+		entities: receivedNormalizedEntities,
+	} = normalizeResource(
 		callResult,
 		finalResourceSchema,
 	);
@@ -219,7 +242,7 @@ export function *mergeResourceTask({ payload: { link, data, collectionLink } }) 
 		receiveEntities(
 			{
 				refs: {},
-				normalizedEntities: normalizedPostResultEntities,
+				normalizedEntities: receivedNormalizedEntities,
 				validAtTime: validAtTime.format(),
 			}
 		)
@@ -228,10 +251,10 @@ export function *mergeResourceTask({ payload: { link, data, collectionLink } }) 
 		receivePersistResourceSuccess(
 			{
 				link: receivedSelfLink,
-				content: postResultEntityId,
+				content: receivedResourceNormalizationResult,
 				collectionLink,
 				transientLink: selfLink,
-				transientContent: resultEntityId,
+				transientContent: resourceNormalizationResult,
 			}
 		)
 	);

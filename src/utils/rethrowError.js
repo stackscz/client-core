@@ -1,7 +1,7 @@
-import _ from 'lodash';
+import { isError } from 'lodash';
 
 export default function rethrowError(e) {
-	if (_.isError(e)) {
+	if (isError(e)) {
 		throw e;
 	}
 }

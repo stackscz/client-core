@@ -1,7 +1,7 @@
 import { uniq, concat } from 'lodash';
 import rethrowError from 'client-core/src/utils/rethrowError';
 import apiServiceResultTypeInvariant from 'client-core/src/utils/apiServiceResultTypeInvariant';
-import type { Error } from 'client-core/src/types/Error';
+import type { Error } from 'client-core/src/utils/types/Error';
 
 import { call, select, put } from 'redux-saga/effects';
 import { takeEvery } from 'redux-saga';

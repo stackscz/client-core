@@ -1,30 +1,48 @@
 import jsonschema from 'jsonschema';
-import jsonSchemaDefaults from 'json-schema-defaults';
 import dot from 'dot-object';
-import mergeWithArrays from '../utils/mergeWithArrays';
-import type { JsonSchema } from '../types/JsonSchema';
-import type { FormErrorMessages } from '../types/FormErrorMessages';
+import mergeWithArrays from 'client-core/src/utils/mergeWithArrays';
+import type { JsonSchema } from 'client-core/src/utils/types/JsonSchema';
+import type { FormErrorMessages } from 'client-core/src/utils/types/FormErrorMessages.js';
 
 export default function (
-	values,
+	dataToValidate,
 	schema: JsonSchema = {},
 	errorMessages: FormErrorMessages = {},
 ) {
-	const defaultValues = jsonSchemaDefaults(schema);
-	const dataToValidate = mergeWithArrays({}, defaultValues, values);
 	const validate = jsonschema.validate(dataToValidate, schema);
 	const errors = validate.valid ?
 		{}
 		:
 		dot.object(
 			validate.errors.reduce((allErrs, err) => {
-				const errorPath = (err.name === 'required' ?
-					`${err.property}.${err.argument}`
-					:
-					err.property
-				).replace('instance.', '');
-				const errorMessage = dot.pick(`${errorPath}.${err.name}`, errorMessages)
-					|| `Error: ${err.name}`;
+				let errorPath;
+
+				if (err.name === 'required') {
+					errorPath = `${err.property}.${err.argument}`;
+
+					if (err.schema.type === 'object') {
+						const errTypePath = `schema.properties.${err.argument}.type`;
+						const errType = dot.pick(errTypePath, err);
+
+						// Redux `FieldArray` needs a special treatment.
+						if (errType === 'array') {
+							errorPath += '._error';
+						}
+					}
+				} else {
+					errorPath = err.property;
+
+					if (err.schema.type === 'array') {
+						errorPath += '._error';
+					}
+				}
+
+				errorPath = errorPath.replace('instance.', '');
+
+				const errorMessagePath = `${errorPath}.${err.name}`
+					.replace(/\[\d+\]/, ''); // errorMessages don't care about which element exactly has the error.
+
+				const errorMessage = dot.pick(errorMessagePath, errorMessages) || `${err.name}`;
 
 				return mergeWithArrays(
 					{},

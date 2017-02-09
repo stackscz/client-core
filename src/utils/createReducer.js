@@ -1,5 +1,5 @@
-import _, { get as g } from 'lodash';
-import { typeInvariant } from 'client-core/src/utils';
+import { get as g, isUndefined, isObject, merge, isArray, isFunction } from 'lodash';
+import typeInvariant from 'client-core/src/utils/typeInvariant';
 import invariant from 'invariant';
 import t from 'tcomb';
 import { INIT } from 'client-core/src/utils/actions';
@@ -27,9 +27,9 @@ export default function createReducer(...params) {
 		name = params[3];
 	}
 
-	invariant(!_.isUndefined(initialState), 'undefined passed to `createReducer` as initial state.');
+	invariant(!isUndefined(initialState), 'undefined passed to `createReducer` as initial state.');
 	invariant(
-		_.isUndefined(handlers) || _.isObject(handlers),
+		isUndefined(handlers) || isObject(handlers),
 		'Invalid handlers object passed to `createReducer`'
 	);
 
@@ -39,7 +39,7 @@ export default function createReducer(...params) {
 			if (initialState.asMutable) {
 				resultState = initialState.merge(state, { deep: true });
 			} else {
-				resultState = _.merge({}, initialState, state);
+				resultState = merge({}, initialState, state);
 			}
 
 			if (stateType && process.env.NODE_ENV !== 'production') {
@@ -52,7 +52,7 @@ export default function createReducer(...params) {
 			const handlerDefinition = handlers[action.type];
 			let handler = handlerDefinition;
 			let actionPayloadType = null;
-			if (_.isArray(handler)) {
+			if (isArray(handler)) {
 				handler = handlerDefinition[1] || (x => x);
 				actionPayloadType = handlerDefinition[0];
 			}
@@ -76,7 +76,7 @@ export default function createReducer(...params) {
 
 			if (stateType && process.env.NODE_ENV !== 'production') {
 				invariant(
-					_.isFunction(resultState.asMutable) && _.isFunction(initialState.asMutable),
+					isFunction(resultState.asMutable) && isFunction(initialState.asMutable),
 					'Reducer returned mutable state for action %s.',
 					action.type
 				);

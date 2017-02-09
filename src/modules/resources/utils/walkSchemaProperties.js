@@ -8,7 +8,8 @@ export default function walkSchemaProperties(inputSchema, iteratee) {
 	each(Object.keys(properties), (propertyName) => {
 		iteratee(
 			resolveSubschema(schema, ['properties', propertyName]),
-			propertyName
+			propertyName,
+			schema,
 		);
 	});
 	const allOf = g(schema, 'allOf');

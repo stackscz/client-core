@@ -4,10 +4,10 @@
 import createReducer from 'client-core/src/utils/createReducer';
 import Immutable from 'seamless-immutable';
 import t from 'tcomb';
-import type { Error } from '../../types/Error';
-import type { EntityId } from '../../types/EntityId';
-import type { AuthContext } from '../../types/AuthContext';
-import type { AuthModuleState } from '../../types/AuthModuleState';
+import type { Error } from 'client-core/src/utils/types/Error';
+import type { EntityId } from 'client-core/src/utils/types/EntityId';
+import type { AuthContext } from 'client-core/src/utils/types/AuthContext';
+import type { AuthModuleState } from 'client-core/src/utils/types/AuthModuleState';
 
 import {
 	INITIALIZE,

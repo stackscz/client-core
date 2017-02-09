@@ -2,8 +2,8 @@
 import createReducer from 'client-core/src/utils/createReducer';
 import Immutable from 'seamless-immutable';
 import { SET_HOST } from './actions';
-import type { Host } from '../../types/Host';
-import type { ApiContext } from '../../types/ApiContext';
+import type { Host } from 'client-core/src/utils/types/Host';
+import type { ApiContext } from 'client-core/src/utils/types/ApiContext';
 
 export default createReducer(
 	ApiContext,

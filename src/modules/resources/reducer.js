@@ -26,7 +26,7 @@ import {
 	DEFINE_RESOURCE,
 } from './actions';
 
-import type { Error } from 'client-core/src/types/Error';
+import type { Error } from 'client-core/src/utils/types/Error';
 
 const defaultResource = Immutable.from({
 	link: undefined,
@@ -232,35 +232,47 @@ export default createReducer(
 				if (collectionLink) {
 					const collectionResourceId = hash(collectionLink);
 					const collectionResource = g(newState, ['resources', collectionResourceId]);
-					if (collectionResource) {
-						newState = newState.updateIn(
+					if (!collectionResource) {
+						newState = newState.setIn(
 							['resources', collectionResourceId],
-							(updatedCollectionResource) => {
-								let updatedContent = updatedCollectionResource.content;
-								if (isArray(updatedCollectionResource.content)) {
-									updatedContent = updatedContent.concat([content]);
+							resourceDefaults(
+								state,
+								collectionResourceId,
+								{
+									link: collectionLink,
+									content: [],
 								}
-								// debugger;
-								// let baseResource = resource;
-								// if (!baseResource) {
-								// 	baseResource = Immutable.from(defaultResource);
-								// }
-								// return baseResource.merge(
-								// 	{
-								// 		link,
-								// 		modelName,
-								// 		content,
-								// 		links,
-								// 		error: undefined,
-								// 		transient,
-								// 		persisting: true,
-								// 		// transient: !baseResource,
-								// 	}
-								// );
-								return updatedCollectionResource.set('content', updatedContent);
-							}
+							),
 						);
 					}
+
+					newState = newState.updateIn(
+						['resources', collectionResourceId],
+						(updatedCollectionResource) => {
+							let updatedContent = updatedCollectionResource.content;
+							if (isArray(updatedCollectionResource.content)) {
+								updatedContent = updatedContent.concat([content]);
+							}
+							// debugger;
+							// let baseResource = resource;
+							// if (!baseResource) {
+							// 	baseResource = Immutable.from(defaultResource);
+							// }
+							// return baseResource.merge(
+							// 	{
+							// 		link,
+							// 		modelName,
+							// 		content,
+							// 		links,
+							// 		error: undefined,
+							// 		transient,
+							// 		persisting: true,
+							// 		// transient: !baseResource,
+							// 	}
+							// );
+							return updatedCollectionResource.set('content', updatedContent);
+						}
+					);
 				}
 
 				return newState;

@@ -21,7 +21,7 @@ if (process.env.DELAY_RESOURCE_SERVICE_RESPONSE) {
 		} catch (error) {
 			reject(error);
 		}
-	}, 1000));
+	}, 1700));
 }
 
 const service = {
@@ -88,16 +88,21 @@ const service = {
 		if (process.env.NODE_ENV !== 'production') {
 			const getMockResource = g(apiDescription, 'getMockResource', () => {
 			});
-			const mockResource = getMockResource(
-				{
-					method: 'POST',
-					data,
-					linkName: name,
-					linkParams: params,
-					resourceSchema,
-					definitions: g(apiDescription, 'definitions'),
-				}
-			);
+			let mockResource;
+			try {
+				mockResource = getMockResource(
+					{
+						method: 'POST',
+						data,
+						linkName: name,
+						linkParams: params,
+						resourceSchema,
+						definitions: g(apiDescription, 'definitions'),
+					}
+				);
+			} catch (error) {
+				return reject(error);
+			}
 
 			if (mockResource) {
 				try {

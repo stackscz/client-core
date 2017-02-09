@@ -9,15 +9,29 @@ import {
 import {
 	entityDictionarySelector,
 } from 'client-core/src/modules/entityStorage/selectors';
-import denormalize from 'client-core/src/modules/resources/utils/denormalize';
+import denormalizeResource from 'client-core/src/modules/resources/utils/denormalizeResource';
 import findRelationLinkName from 'client-core/src/modules/resources/utils/findRelationLinkName';
+import getIdPropertyName from 'client-core/src/modules/resources/utils/getIdPropertyName';
+import resolveSubschema from 'client-core/src/modules/resources/utils/resolveSubschema';
+import normalizeLink from 'client-core/src/modules/resources/utils/normalizeLink';
 import type { ResourceLink } from 'client-core/src/modules/resources/types/ResourceLink';
+import { INTERNAL_ID_PROPERTY_NAME } from 'client-core/src/modules/resources/constants';
 import findResourceSchema from './utils/findResourceSchema';
 
 export const resourcesModuleStateSelector = (state) => g(state, 'resources');
 export const resourcesServiceSelector = (state) => g(state, 'resources.service', {});
 export const pathsSelector = (state) => g(state, 'resources.paths');
 export const definitionsSelector = (state) => g(state, 'resources.definitions');
+
+export const normalizedLinkSelectorFactory = memoize(
+	(link = {}) =>
+		createSelector(
+			(state) => g(state, 'resources.paths'),
+			(paths) => {
+				return normalizeLink(link, paths);
+			}
+		)
+);
 
 export const resolvedLinkSelectorFactory = memoize(
 	(link = {}) =>
@@ -32,11 +46,9 @@ export const resolvedLinkSelectorFactory = memoize(
 		)
 );
 
-const emptyResource = {};
-
 export const resourceSelectorFactory = memoize(
 	(link = {}) => (state) => {
-		return g(state, ['resources', 'resources', hash(link)], emptyResource);
+		return g(state, ['resources', 'resources', hash(link)]);
 	}
 );
 
@@ -99,14 +111,40 @@ export const denormalizedResourceSelectorFactory = memoize(
 						link,
 					}
 				);
+
+
+				let finalResourceSchema = resourceSchema;
+				if (g(resourceSchema, 'type') === 'array') {
+					const itemSchema = resolveSubschema(resourceSchema, 'items');
+					const idPropertyName = getIdPropertyName(itemSchema);
+					if (!idPropertyName) {
+						finalResourceSchema = {
+							...finalResourceSchema,
+							items: {
+								...itemSchema,
+								'x-idPropertyName': INTERNAL_ID_PROPERTY_NAME,
+							},
+						};
+					}
+				} else {
+					const idPropertyName = getIdPropertyName(resourceSchema);
+					if (!idPropertyName) {
+						finalResourceSchema = {
+							...finalResourceSchema,
+							'x-idPropertyName': INTERNAL_ID_PROPERTY_NAME,
+						};
+					}
+				}
+
+				const content = denormalizeResource(
+					resource.content,
+					finalResourceSchema,
+					entityDictionary,
+					maxLevel,
+				);
 				return {
 					...resource,
-					content: denormalize(
-						resource.content,
-						resourceSchema,
-						entityDictionary,
-						maxLevel,
-					),
+					content,
 				};
 			}
 		)

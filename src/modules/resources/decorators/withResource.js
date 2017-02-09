@@ -1,8 +1,8 @@
-import container from 'client-core/src/decorators/container';
+import container from 'client-core/src/utils/decorators/container';
 
 import React from 'react';
-import { get as g, upperFirst } from 'lodash';
-import { compose, pure, lifecycle, withHandlers } from 'client-core/src/utils/react-fp';
+import { get as g, upperFirst, identity } from 'lodash';
+import { compose, pure, lifecycle, withHandlers, withProps, branch } from 'client-core/src/utils/react-fp';
 import {
 	ensureResource,
 	mergeResource,
@@ -13,7 +13,10 @@ import {
 	denormalizedResourceSelectorFactory,
 } from 'client-core/src/modules/resources/selectors';
 
+const emptyResource = {};
+
 export default ({
+	link,
 	linkPropName = 'resourceLink',
 	outputPropsPrefix = '',
 	autoload = false,
@@ -25,13 +28,22 @@ export default ({
 
 	return compose(
 		pure,
+		branch(
+			() => !!link,
+			withProps(
+				(props) => ({ link: link(props) })
+			),
+			withProps(
+				(props) => ({ link: g(props, linkPropName) })
+			),
+		),
 		container(
 			(state, ownerProps) => {
-				const resourceLink = g(ownerProps, linkPropName);
-				const denormalizedResource = denormalizedResourceSelectorFactory(resourceLink)(state);
+				const { link: resourceLink } = ownerProps;
+				const denormalizedResource = denormalizedResourceSelectorFactory(resourceLink, 5)(state);
 				return {
 					[resourceLinkKey]: resourceLink,
-					[resourceKey]: resourceSelectorFactory(resourceLink)(state),
+					[resourceKey]: resourceSelectorFactory(resourceLink)(state) || emptyResource,
 					[resourceContentKey]: g(denormalizedResource, 'content'),
 				};
 			},

@@ -23,12 +23,12 @@ import {
 	FORGET_ENTITIES,
 } from './actions';
 
-import type { Error } from '../../types/Error';
-// import type { EntitySchema } from '../../types/EntitySchema';
-import type { CollectionName } from '../../types/CollectionName';
-import type { EntityId } from '../../types/EntityId';
-import type { EntityStatus } from '../../types/EntityStatus';
-import type { NormalizedEntityDictionary } from '../../types/NormalizedEntityDictionary';
+import type { Error } from 'client-core/src/utils/types/Error';
+// import type { EntitySchema } from 'client-core/src/utils/types/EntitySchema';
+import type { CollectionName } from 'client-core/src/utils/types/CollectionName';
+import type { EntityId } from 'client-core/src/utils/types/EntityId';
+import type { EntityStatus } from 'client-core/src/utils/types/EntityStatus';
+import type { NormalizedEntityDictionary } from 'client-core/src/utils/types/NormalizedEntityDictionary';
 
 const defaultStatus = {
 	transient: false,

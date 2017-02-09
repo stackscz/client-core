@@ -1,5 +1,4 @@
 import { each } from 'lodash';
-
 export default function safeJSONStringify(input, maxDepth = 5) {
 	let finalOutput;
 	const refs = [];

@@ -28,9 +28,9 @@ import {
 	receivePersistEntityFailure,
 } from '../actions';
 
-import type { ApiService } from 'client-core/src/types/ApiService';
-import type { EntityResult } from 'client-core/src/types/EntityResult';
-import type { EntityValidationError } from 'client-core/src/types/EntityValidationError';
+import type { ApiService } from 'client-core/src/utils/types/ApiService';
+import type { EntityResult } from 'client-core/src/utils/types/EntityResult';
+import type { EntityValidationError } from 'client-core/src/utils/types/EntityValidationError';
 
 const INTERNAL_ID_PROPERTY_NAME = '_id';
 
@@ -77,9 +77,7 @@ export function *mergeEntityTask(action) {
 			[idPropertyName]: entityId,
 		},
 		entityHasOwnIdProperty ?
-		(
-			entitySchema
-		) :
+			entitySchema :
 		({
 			...entitySchema,
 			'x-idPropertyName': INTERNAL_ID_PROPERTY_NAME,

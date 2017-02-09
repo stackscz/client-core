@@ -6,9 +6,9 @@ import getIdPropertyName from 'client-core/src/modules/resources/utils/getIdProp
 import resolveSchema from 'client-core/src/modules/resources/utils/resolveSchema';
 import resolveSubschema from 'client-core/src/modules/resources/utils/resolveSubschema';
 
-import type { JsonSchema } from 'client-core/src/types/JsonSchema';
-import type { Entity } from 'client-core/src/types/Entity';
-import type { NormalizedEntityDictionary } from 'client-core/src/types/NormalizedEntityDictionary';
+import type { JsonSchema } from 'client-core/src/utils/types/JsonSchema';
+import type { Entity } from 'client-core/src/utils/types/Entity';
+import type { NormalizedEntityDictionary } from 'client-core/src/utils/types/NormalizedEntityDictionary';
 
 function resolveEntityOrId(entityOrId, schema, entityDictionary) {
 	const idPropertyName = getIdPropertyName(schema);
