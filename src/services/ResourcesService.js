@@ -46,6 +46,7 @@ const service = {
 			if (mockResource) {
 				try {
 					validateResource(mockResource, resourceSchema);
+					console.warn('GET resource:', mockResource);
 					resolve(mockResource);
 				} catch (error) {
 					reject(error);

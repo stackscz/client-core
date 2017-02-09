@@ -11,6 +11,7 @@
     "react": "^15.4.2",
     "react-dom": "^15.4.2",
     "react-redux": "^5.0.2",
+    "react-router": "^4.0.0-alpha.5",
     "recompose": "^0.22.0",
     "redux": "^3.6.0",
     "redux-form": "^6.5.0",
@@ -26,11 +27,13 @@
     "json-schema-deref-local": "^0.2.1",
     "jsonschema": "^1.1.0",
     "object-hash": "^1.1.5",
-    "react-router": "next",
     "react-router-addons-controlled": "^0.0.1",
     "redux-batched-subscribe": "^0.1.6",
     "reselect": "^2.5.4",
     "seamless-immutable": "^6.3.0",
     "urijs": "1.18.0"
+  },
+  "devDependencies": {
+    "cross-env": "^3.1.4"
   }
 }

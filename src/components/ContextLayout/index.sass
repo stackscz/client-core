@@ -1,0 +1,59 @@
+$ContextLayout-shadow-color: #afafaf
+
+.ContextLayout
+  height: 100%
+  display: flex
+  flex-direction: column
+
+  &-contentWrapper
+    flex: 1
+    position: relative
+    &:before
+      //content: ' '
+      //position: absolute
+      //top: 0
+      //left: 0
+      //right: 0
+      //height: 20px
+      //pointer-events: none
+      //box-shadow: 2px 2px 2px #353535
+
+  &-content
+    position: absolute
+    top: 0
+    right: 0
+    bottom: 0
+    left: 0
+    overflow: auto
+
+  &-scrollIndicator
+    position: absolute
+    height: 10px
+    left: 0
+    right: 0
+    overflow: hidden
+    z-index: 3
+
+    &:before
+      content: ' '
+      position: absolute
+      left: 0
+      right: 0
+      height: 20px
+      pointer-events: none
+      transform: scaleX(1.2)
+
+    &--top
+      top: 0
+      &:before
+        top: 0
+        box-shadow: inset 2px 2px 2px $ContextLayout-shadow-color
+
+    &--bottom
+      bottom: 0
+      &:before
+        bottom: 0
+        box-shadow: inset 2px -2px 2px $ContextLayout-shadow-color
+
+
+
