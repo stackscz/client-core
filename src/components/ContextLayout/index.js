@@ -1,7 +1,6 @@
 import React from 'react';
 import { compose, pure, withState } from 'recompose';
-import Scrollbars from 'components/Scrollbars';
-// import rerenderOnResize from 'client-core/lib/decorators/rerenderOnResize';
+import Scrollbars from '../Scrollbars';
 
 import './index.sass';
 

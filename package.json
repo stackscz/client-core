@@ -27,10 +27,12 @@
     "json-schema-deref-local": "^0.2.1",
     "jsonschema": "^1.1.0",
     "object-hash": "^1.1.5",
+    "react-custom-scrollbars": "^4.0.2",
     "react-router-addons-controlled": "^0.0.1",
     "redux-batched-subscribe": "^0.1.6",
     "reselect": "^2.5.4",
     "seamless-immutable": "^6.3.0",
+    "shallow-diff": "0.0.5",
     "urijs": "1.18.0"
   },
   "devDependencies": {
