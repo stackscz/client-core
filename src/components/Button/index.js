@@ -4,14 +4,18 @@ import { bm, be } from 'client-core/src/utils/bem';
 const Button = ({
 	moduleName = 'Button',
 	children,
+	...props,
 }) => {
 	return (
-		<button className={bm(moduleName)}>{children}</button>
+		<button
+			className={bm(moduleName)}
+			{...props}
+		>
+			{children}
+		</button>
 	);
 };
 
-Button.propTypes = {
-
-};
+Button.propTypes = {};
 
 export default Button;
