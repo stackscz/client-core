@@ -3,6 +3,7 @@ import { call, select, put } from 'redux-saga/effects';
 import { takeEvery } from 'redux-saga';
 import invariant from 'invariant';
 import rethrowError from 'client-core/src/utils/rethrowError';
+import getIdPropertyName from 'client-core/src/modules/resources/utils/getIdPropertyName';
 import {
 	resourcesModuleStateSelector,
 	resourcesServiceSelector,
@@ -18,10 +19,6 @@ import {
 } from '../actions';
 
 import {
-	modelIdPropertyNameSelectorFactory,
-} from 'client-core/src/modules/entityDescriptors/selectors';
-
-import {
 	forgetEntity,
 } from 'client-core/src/modules/entityStorage/actions';
 
@@ -32,11 +29,7 @@ export function *deleteResourceTask({ payload: { link, collectionsLinks } }) {
 	const modelName = g(resourceSchema, 'x-model');
 
 	// determine id property of model by name
-	const idPropertyNameSelector = yield call(
-		modelIdPropertyNameSelectorFactory,
-		modelName,
-	);
-	const idPropertyName = yield select(idPropertyNameSelector);
+	const idPropertyName = getIdPropertyName(resourceSchema);
 	const entityId = g(link, ['params', idPropertyName]);
 	invariant(entityId, 'Couldn\'t determine entityId to delete');
 

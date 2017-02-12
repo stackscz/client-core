@@ -1,5 +1,5 @@
 // @flow
-import { get as g, each, isArray } from 'lodash';
+import { get as g, each, isArray, includes } from 'lodash';
 import hash from 'object-hash';
 import Immutable from 'seamless-immutable';
 import t from 'tcomb';
@@ -250,7 +250,9 @@ export default createReducer(
 						['resources', collectionResourceId],
 						(updatedCollectionResource) => {
 							let updatedContent = updatedCollectionResource.content;
-							if (isArray(updatedCollectionResource.content)) {
+							if (
+								isArray(updatedCollectionResource.content) && !includes(updatedContent, content)
+							) {
 								updatedContent = updatedContent.concat([content]);
 							}
 							// debugger;
