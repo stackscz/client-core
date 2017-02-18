@@ -1,7 +1,7 @@
 import container from 'client-core/src/utils/decorators/container';
 
 import React from 'react';
-import { get as g, upperFirst, identity } from 'lodash';
+import { get as g, upperFirst } from 'lodash';
 import { compose, pure, lifecycle, withHandlers, withProps, branch } from 'client-core/src/utils/react-fp';
 import {
 	ensureResource,
@@ -16,7 +16,7 @@ import {
 const emptyResource = {};
 
 export default ({
-	link,
+	link: linkFactory,
 	linkPropName = 'resourceLink',
 	outputPropsPrefix = '',
 	autoload = false,
@@ -29,9 +29,9 @@ export default ({
 	return compose(
 		pure,
 		branch(
-			() => !!link,
+			() => !!linkFactory,
 			withProps(
-				(props) => ({ link: link(props) })
+				(props) => ({ link: linkFactory(props) })
 			),
 			withProps(
 				(props) => ({ link: g(props, linkPropName) })

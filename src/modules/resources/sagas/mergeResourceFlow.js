@@ -89,7 +89,6 @@ export function *mergeResourceTask({ payload: { link, data: inputData, collectio
 		finalResourceSchema,
 		'self',
 	);
-	// debugger;
 	let selfLink = link;
 	if (!selfLink) {
 		selfLink = yield select(
@@ -211,24 +210,6 @@ export function *mergeResourceTask({ payload: { link, data: inputData, collectio
 			}
 		)
 	);
-	// const receivedSelfLink = normalizedReceivedSelfLink;
-
-	// if (!resourceHasOwnIdProperty) {
-	// 	receivedSelfLink = {
-	// 		...receivedSelfLink,
-	// 		params: {
-	// 			...receivedSelfLink.params,
-	// 			[idPropertyName]: entityId,
-	// 		},
-	// 	};
-	// }
-	//
-	// if (!resourceHasOwnIdProperty) {
-	// 	callResult = {
-	// 		...callResult,
-	// 		[idPropertyName]: entityId,
-	// 	};
-	// }
 
 	const {
 		result: receivedResourceNormalizationResult,

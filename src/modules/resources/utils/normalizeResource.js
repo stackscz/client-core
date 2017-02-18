@@ -34,7 +34,7 @@ export const visitEntity = (value, entitySchema, resourcesDict) => {
 	const idPropertyName = getIdPropertyName(entitySchema);
 	const modelName = g(entitySchema, 'x-model');
 
-	const id = `${value[idPropertyName]}`;
+	const id = g(value, idPropertyName);
 	if (!id) {
 		return value;
 	}
@@ -98,12 +98,33 @@ export const visitObject = (value, objectSchema, resourcesDict) => {
 
 	const modelName = g(objectSchema, 'x-model');
 	const normalized = {};
-	walkSchemaProperties(objectSchema, (propertySchema, propertyName, propertyParentSchema) => {
-		const propertyParentModelName = g(propertyParentSchema, 'x-model');
-		if (!modelName || modelName === propertyParentModelName) {
+	walkSchemaProperties(
+		objectSchema,
+		(propertySchema, propertyName, propertyParentSchema) => {
+			const propertyParentModelName = g(propertyParentSchema, 'x-model');
+			if (!modelName || modelName === propertyParentModelName) {
+				const result = visit( // eslint-disable-line no-use-before-define
+					g(value, propertyName),
+					propertySchema,
+					resourcesDict,
+				);
+				if (!isUndefined(result)) {
+					setWith(
+						normalized,
+						propertyName,
+						result,
+						Object,
+					);
+				}
+			}
+		}
+	);
+	const additionalProperties = g(objectSchema, 'additionalProperties');
+	if (additionalProperties) {
+		each(value, (_, propertyName) => {
 			const result = visit( // eslint-disable-line no-use-before-define
 				g(value, propertyName),
-				propertySchema,
+				additionalProperties,
 				resourcesDict,
 			);
 			if (!isUndefined(result)) {
@@ -114,8 +135,8 @@ export const visitObject = (value, objectSchema, resourcesDict) => {
 					Object,
 				);
 			}
-		}
-	});
+		});
+	}
 
 	return normalized;
 };

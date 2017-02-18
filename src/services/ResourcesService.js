@@ -21,7 +21,7 @@ if (process.env.DELAY_RESOURCE_SERVICE_RESPONSE) {
 		} catch (error) {
 			reject(error);
 		}
-	}, 1700));
+	}, 1000));
 }
 
 const service = {
@@ -101,7 +101,8 @@ const service = {
 					}
 				);
 			} catch (error) {
-				return reject(error);
+				reject(error);
+				return;
 			}
 
 			if (mockResource) {

@@ -255,23 +255,6 @@ export default createReducer(
 							) {
 								updatedContent = updatedContent.concat([content]);
 							}
-							// debugger;
-							// let baseResource = resource;
-							// if (!baseResource) {
-							// 	baseResource = Immutable.from(defaultResource);
-							// }
-							// return baseResource.merge(
-							// 	{
-							// 		link,
-							// 		modelName,
-							// 		content,
-							// 		links,
-							// 		error: undefined,
-							// 		transient,
-							// 		persisting: true,
-							// 		// transient: !baseResource,
-							// 	}
-							// );
 							return updatedCollectionResource.set('content', updatedContent);
 						}
 					);

@@ -1,6 +1,6 @@
 // @flow
 /* eslint-disable no-use-before-define, no-param-reassign */
-import { each, get as g, isObject, isEmpty, merge } from 'lodash';
+import { each, get as g, isObject, clone } from 'lodash';
 
 import getIdPropertyName from 'client-core/src/modules/resources/utils/getIdPropertyName';
 import resolveSchema from 'client-core/src/modules/resources/utils/resolveSchema';
@@ -34,7 +34,7 @@ function resolveEntityOrId(entityOrId, schema, entityDictionary) {
 
 function visitObject(obj, schema, entityDictionary, bag, maxLevel, currentLevel) {
 	// console.log('visitObject', obj);
-	const denormalized = obj;
+	const denormalized = clone(obj); // shallow clone to avoid mutating input
 	each(g(schema, 'properties'), (propertySchema, key) => {
 		// console.log('FOR KEY:', key, 'FOUND SCHEMA:', findSchemaForProperty(schema, key));
 		if (propertySchema && obj[key]) {
@@ -62,7 +62,7 @@ function visitEntity(obj, inputSchema, entityDictionary, bag, maxLevel, currentL
 
 	if (!bag[modelName].hasOwnProperty(id)) {
 		// Ensure we don't mutate it non-immutable objects
-		const newObj = merge({}, entity);
+		const newObj = clone(entity);
 
 		// Need to set this first so that if it is referenced within the call to
 		// visitObject, it will already exist.

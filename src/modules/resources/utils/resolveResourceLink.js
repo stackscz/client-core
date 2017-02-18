@@ -45,6 +45,9 @@ export default (apiDescription, link) => {
 	const queryParams = {};
 	try {
 		each(parameters, (parameter) => {
+			if (g(parameter, 'in') === 'body') {
+				return;
+			}
 			const linkParamName = g(parameter, 'name');
 			const linkParamPath = g(parameter, 'x-linkParam');
 			const paramValue = g(params, linkParamPath);

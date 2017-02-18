@@ -3,6 +3,9 @@ import resolveSchema from 'client-core/src/modules/resources/utils/resolveSchema
 import resolveSubschema from 'client-core/src/modules/resources/utils/resolveSubschema';
 
 export default function getComposingModels(inputSchema) {
+	if (!inputSchema) {
+		return [];
+	}
 	const schema = resolveSchema(inputSchema);
 	const modelName = g(schema, 'x-model');
 	const result = modelName ? [modelName] : [];

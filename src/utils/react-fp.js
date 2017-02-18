@@ -9,11 +9,14 @@ import {
 	setDisplayName,
 	getDisplayName,
 	withProps,
-	withHandlers,
 	toClass,
 	branch,
 	renderNothing,
 	renderComponent,
+	withHandlers,
+	renameProps,
+	renameProp,
+	mapProps,
 } from 'recompose';
 
 const lifecycleMethods = [
@@ -132,10 +135,13 @@ export {
 	setDisplayName,
 	getDisplayName,
 	withProps,
-	withHandlers,
 	toClass,
 	branch,
 	renderNothing,
 	renderComponent,
+	withHandlers,
 	logRender,
+	renameProps,
+	renameProp,
+	mapProps,
 };

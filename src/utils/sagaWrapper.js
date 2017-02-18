@@ -3,7 +3,7 @@
  *
  * @example
  * // ---> Exemplary saga file.
- * // src/modules/analytics/sagas/fullStoryFlow.js
+ * // src/one-app-core/modules/analytics/sagas/fullStoryFlow.js
  * function* fullStoryFlow() {
  *   yield take(INITIALIZE_FINISH);
  *
@@ -17,7 +17,7 @@
  * }
  *
  * // ---> Here is the test with a BRAIN$#@!.
- * // tests/modules/analytics/sagas/fullStoryFlow.js
+ * // tests/one-app-core/modules/analytics/sagas/fullStoryFlow.js
  * test('saga: fullStoryFlow anonymous user', t => {
  *   const saga = fullStoryFlow();
  *
@@ -48,7 +48,7 @@
  *
  *
  * // --------> There, `sagaWrapper` makes testing "reasonable". I guess...
- * // tests/modules/analytics/sagas/fullStoryFlow.js
+ * // tests/one-app-core/modules/analytics/sagas/fullStoryFlow.js
  * test('saga: fullStoryFlow anonymous user', t => {
  *   const saga = sagaWrapper(fullStoryFlow()); // ---> make the saga reasonable.
  *
