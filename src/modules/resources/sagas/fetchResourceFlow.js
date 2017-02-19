@@ -2,7 +2,7 @@ import { get as g } from 'lodash';
 import { call, select, put } from 'redux-saga/effects';
 import { takeEvery } from 'redux-saga';
 import hash from 'object-hash';
-import normalize from 'client-core/src/modules/resources/utils/normalize';
+import normalizeResource from 'client-core/src/modules/resources/utils/normalizeResource';
 
 import { receiveEntities } from 'client-core/src/modules/entityStorage/actions';
 import { now } from 'client-core/src/utils/sideEffects';
@@ -101,7 +101,7 @@ export function *fetchResourceTask(action) {
 	const {
 		result,
 		entities,
-	} = normalize(
+	} = normalizeResource(
 		resource,
 		resourceSchema,
 	);

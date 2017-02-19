@@ -24,7 +24,7 @@ function resolveEntityOrId(entityOrId, schema, entityDictionary) {
 	} else {
 		entityId = entityOrId;
 	}
-	const entity = g(entityDictionary, [modelName, entityId]);
+	const entity = g(entityDictionary, [modelName, entityId], entityOrId);
 
 	return {
 		entity,

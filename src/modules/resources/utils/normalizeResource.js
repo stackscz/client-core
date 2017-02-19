@@ -34,7 +34,7 @@ export const visitEntity = (value, entitySchema, resourcesDict) => {
 	const idPropertyName = getIdPropertyName(entitySchema);
 	const modelName = g(entitySchema, 'x-model');
 
-	const id = `${value[idPropertyName]}`;
+	const id = g(value, idPropertyName);
 	if (!id) {
 		return value;
 	}

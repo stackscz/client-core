@@ -13,6 +13,8 @@ import {
 	denormalizedResourceSelectorFactory,
 } from 'client-core/src/modules/resources/selectors';
 
+import hash from 'object-hash';
+
 const emptyResource = {};
 
 export default ({
@@ -82,8 +84,16 @@ export default ({
 				autoload ?
 				(
 					{
-						componentWillMount({ [handleLoadResourceKey]: handleLoadResource }) {
+						componentWillMount({ [handleLoadResourceKey]: handleLoadResource, [resourceLinkKey]: resourceLink }) {
+							console.log('autoloading', resourceLink);
 							handleLoadResource();
+						},
+						componentWillReceiveProps({ [resourceLinkKey]: oldResourceLink },
+							{ [resourceLinkKey]: resourceLink, [handleLoadResourceKey]: handleLoadResource }) {
+							if (hash(resourceLink) !== hash(oldResourceLink)) {
+								console.log('autoloading', resourceLink);
+								handleLoadResource();
+							}
 						},
 					}
 				) : {}
@@ -91,3 +101,14 @@ export default ({
 		),
 	);
 };
+
+
+// renderComponent(
+// 	createSink(
+// 		({ [handleLoadResourceKey]: handleLoadResource }) => {
+// 			console.log('loadResource', resourceLinkKey);
+// 			// handleLoadResource();
+// 		}
+// 	),
+// ),
+
