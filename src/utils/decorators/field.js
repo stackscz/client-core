@@ -2,7 +2,7 @@ import React from 'react';
 import constuctFieldProps from 'client-core/src/utils/constructFieldProps';
 
 export default ({
-	containsLabel = false,
+	containsLabel = true,
 	submitFailedKey = 'submitFailed',
 	defaultErrorModifiers = '',
 	canBeTouched = true,

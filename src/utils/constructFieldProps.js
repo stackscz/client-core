@@ -26,11 +26,12 @@ export default ({
 		);
 	}
 
-	const newModifiers = [modifiers, (showError ? 'error' : '')].join(' ');
+	const newModifiers = [showError && 'error'].concat(modifiers).filter(Boolean);
+
 	return {
 		showError,
 		errorModifiers,
-		modifiers: newModifiers,
+		modifiers: !!newModifiers.length ? newModifiers.join(' ') : undefined,
 		containsLabel,
 	};
 };

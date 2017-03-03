@@ -4,7 +4,7 @@ import constuctFieldProps from 'client-core/src/utils/constructFieldProps';
 import RichField from 'one-ui-core/components/RichField';
 
 export default ({
-	containsLabel = false,
+	containsLabel = true,
 	submitFailedKey = 'submitFailed',
 	defaultErrorModifiers = '',
 	canBeTouched = true,
