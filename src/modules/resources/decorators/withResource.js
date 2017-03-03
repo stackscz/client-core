@@ -84,14 +84,12 @@ export default ({
 				autoload ?
 				(
 					{
-						componentWillMount({ [handleLoadResourceKey]: handleLoadResource, [resourceLinkKey]: resourceLink }) {
-							console.log('autoloading', resourceLink);
+						componentWillMount({ [handleLoadResourceKey]: handleLoadResource }) {
 							handleLoadResource();
 						},
 						componentWillReceiveProps({ [resourceLinkKey]: oldResourceLink },
 							{ [resourceLinkKey]: resourceLink, [handleLoadResourceKey]: handleLoadResource }) {
 							if (hash(resourceLink) !== hash(oldResourceLink)) {
-								console.log('autoloading', resourceLink);
 								handleLoadResource();
 							}
 						},
@@ -101,14 +99,3 @@ export default ({
 		),
 	);
 };
-
-
-// renderComponent(
-// 	createSink(
-// 		({ [handleLoadResourceKey]: handleLoadResource }) => {
-// 			console.log('loadResource', resourceLinkKey);
-// 			// handleLoadResource();
-// 		}
-// 	),
-// ),
-
