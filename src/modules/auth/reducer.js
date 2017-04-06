@@ -7,7 +7,7 @@ import t from 'tcomb';
 import type { Error } from 'client-core/src/utils/types/Error';
 import type { EntityId } from 'client-core/src/utils/types/EntityId';
 import type { AuthContext } from 'client-core/src/utils/types/AuthContext';
-import type { AuthModuleState } from 'client-core/src/utils/types/AuthModuleState';
+import type { AuthModuleState } from 'client-core/src/modules/auth/types/AuthModuleState';
 
 import {
 	INITIALIZE,
@@ -25,8 +25,7 @@ export default createReducer(
 	AuthModuleState,
 	Immutable.from({
 		context: {},
-		userId: null,
-		userModelName: 'users',
+		userLink: null,
 		error: null,
 		initializing: false,
 		initialized: false,

@@ -11,7 +11,7 @@ import { init } from 'client-core/src/utils/actions';
 
 import type { StoreConfig } from 'client-core/src/types/StoreConfig';
 
-function runSaga(sagaMiddleware:Function, saga:Function):void {
+function runSaga(sagaMiddleware: Function, saga: Function): void {
 	sagaMiddleware.run(saga);
 	// .done.catch((error) => {
 	// 	// TODO logging
@@ -20,7 +20,7 @@ function runSaga(sagaMiddleware:Function, saga:Function):void {
 	// });
 }
 
-export default function createStore(config:StoreConfig = {}, initialState = {}):Object {
+export default function createStore(config: StoreConfig = {}, initialState = {}): Object {
 	let reducers = config && config.reducers ? { ...config.reducers } : {};
 	let sagas = config && config.sagas ? [...config.sagas] : [];
 	const enhancers = config && config.enhancers ? [...config.enhancers] : [];
@@ -52,7 +52,9 @@ export default function createStore(config:StoreConfig = {}, initialState = {}):
 	if (process.env.UNIVERSAL_ENV !== 'server') {
 		const batchedSubscribe = require('redux-batched-subscribe').batchedSubscribe;
 		const batchedUpdates = require('react-dom').unstable_batchedUpdates;
-		enhancers.push(batchedSubscribe(batchedUpdates));
+		if (batchedUpdates) {
+			enhancers.push(batchedSubscribe(batchedUpdates));
+		}
 	}
 
 	const rootReducer = combineReducers(reducers);

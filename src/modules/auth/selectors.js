@@ -2,6 +2,7 @@ import { get as g } from 'lodash';
 import { createSelector } from 'reselect';
 
 import denormalize from 'client-core/src/modules/resources/utils/denormalize';
+import { denormalizedResourceSelectorFactory } from 'client-core/src/modules/resources/selectors';
 import { modelSchemaSelectorFactory } from 'client-core/src/modules/entityDescriptors/selectors';
 import { entityDictionarySelector } from 'client-core/src/modules/entityStorage/selectors';
 
@@ -21,6 +22,10 @@ export const userIdSelector =
 	state =>
 		g(state, ['auth', 'userId']);
 
+export const userLinkSelector =
+	state =>
+		g(state, ['auth', 'userLink']);
+
 export const userSchemaSelector = // TODO can't do better selector?
 	createSelector(
 		(state) => g(state, ['auth', 'userModelName']),
@@ -31,20 +36,12 @@ export const userSchemaSelector = // TODO can't do better selector?
 	);
 
 export const userSelector = createSelector(
-	entityDictionarySelector,
-	userSchemaSelector,
-	userIdSelector,
-	(entityDictionary, userSchema, userId) => {
-		if (entityDictionary && userSchema && userId) {
-			return denormalize(
-				userId,
-				userSchema,
-				entityDictionary,
-				2
-			);
-		}
-		return undefined;
-	}
+	userLinkSelector,
+	(state) => state,
+	(userLink, state) => g(
+		denormalizedResourceSelectorFactory(userLink)(state),
+		'content'
+	),
 );
 
 export const isUserAnonymousSelector = createSelector(

@@ -7,27 +7,24 @@ import {
 } from 'recompose';
 import { login } from 'client-core/src/modules/auth/actions';
 
-export default (Component) => {
-	return compose(
-		setDisplayName(`${getDisplayName(Component)}`),
-		container(
-			(state) => {
-				const { authenticating, error } = state.auth;
-				const presetUsername = g(state, 'routing.location.query.presetUsername');
-				return {
-					authenticating,
-					loginError: error,
-					presetUsername,
-				};
+export default compose(
+	container(
+		(state) => {
+			const { authenticating, error } = state.auth;
+			const presetUsername = g(state, 'routing.location.query.presetUsername');
+			return {
+				authenticating,
+				loginError: error,
+				presetUsername,
+			};
+		},
+		(dispatch) => ({
+			handleLogin: (values) => {
+				dispatch(login(values));
 			},
-			(dispatch) => ({
-				handleLogin: (values) => {
-					dispatch(login(values));
-				},
-				// handleResetForm: () => {
-				// 	dispatch(resetForm('login-form'));
-				// },
-			})
-		)
-	)(Component);
-};
+			// handleResetForm: () => {
+			// 	dispatch(resetForm('login-form'));
+			// },
+		})
+	)
+);

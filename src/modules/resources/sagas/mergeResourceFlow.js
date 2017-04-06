@@ -89,6 +89,9 @@ export function *mergeResourceTask({ payload: { link, data: inputData, collectio
 		finalResourceSchema,
 		'self',
 	);
+	if(!selfLinkName) {
+		debugger
+	}
 	let selfLink = link;
 	if (!selfLink) {
 		selfLink = yield select(

@@ -1,6 +1,6 @@
 // @flow
 import { takeLatest } from 'redux-saga';
-import { take, fork, call, put, select, cancel } from 'redux-saga/effects';
+import { take, fork, call, race, put, select, cancel } from 'redux-saga/effects';
 
 import t from 'tcomb';
 import hash from 'object-hash';
@@ -10,7 +10,7 @@ import rethrowError from 'client-core/src/utils/rethrowError';
 import isOfType from 'client-core/src/utils/isOfType';
 import { now } from 'client-core/src/utils/sideEffects';
 
-import { apiContextSelector, apiServiceSelector } from 'client-core/src/modules/api/selectors';
+// import { apiContextSelector, apiServiceSelector } from 'client-core/src/modules/api/selectors';
 import {
 	modelSchemaSelectorFactory,
 	modelIdPropertyNameSelectorFactory,
@@ -21,6 +21,16 @@ import {
 } from 'client-core/src/modules/entityDescriptors/actions';
 
 import normalize from 'client-core/src/modules/resources/utils/normalize';
+import {
+	fetchResource,
+	RECEIVE_RESOURCE,
+	RECEIVE_FETCH_RESOURCE_FAILURE,
+
+	mergeResource,
+	RECEIVE_PERSIST_RESOURCE_SUCCESS,
+	RECEIVE_PERSIST_RESOURCE_FAILURE,
+
+} from 'client-core/src/modules/resources/actions';
 
 import {
 	receiveEntities,
@@ -71,78 +81,78 @@ export function* normalizeUserTask(user) {
 }
 
 export function* refreshIdentityTask() {
-	const ApiService = yield select(apiServiceSelector);
-	const apiContext = yield select(apiContextSelector);
-	const authContext = yield select(authContextSelector);
-	let user = null;
-	let freshAuthContext = authContext;
-	try {
-		({ user, authContext: freshAuthContext } = yield call(
-			ApiService.refreshAuth,
-			apiContext,
-			authContext
-		));
-	} catch (error) {
-		rethrowError(error);
+	// const ApiService = yield select(apiServiceSelector);
+	// const apiContext = yield select(apiContextSelector);
+	// const authContext = yield select(authContextSelector);
+
+	debugger;
+
+	const userLink = yield select((state) => state.auth.userLink);
+
+	yield put(
+		fetchResource(
+			{
+				link: userLink
+			}
+		)
+	);
+
+	const { success, failure } = yield race(
+		{
+			success: take(({ type, payload: { link } = {}}) => type === RECEIVE_RESOURCE && hash(link) === hash(userLink)),
+			failure: take(({ type, payload: { link } = {}}) => type === RECEIVE_FETCH_RESOURCE_FAILURE && hash(link) === hash(userLink)),
+		}
+	);
+
+	if (failure) {
+		const { payload: { error } } = failure;
 		yield put(
 			receiveRefreshIdentityFailure(error)
-		);
-		return;
-	}
-
-	const { userModelName } = yield select(authStateSelector);
-	const originalUserId = yield select(userIdSelector);
-
-	const {
-		userId,
-		entities,
-	} = yield call(normalizeUserTask, user);
-
-	if (userId) {
-		const modelIdPropertyNameSelector = yield call(modelIdPropertyNameSelectorFactory, userModelName);
-		const userIdPropertyName = yield select(modelIdPropertyNameSelector);
-		const where = { [userIdPropertyName]: userId };
-		const refs = {
-			[userModelName]: {
-				[hash(where)]: {
-					where,
-					entityId: userId,
-				},
-			},
-		};
-
-		const time = yield call(now);
-
-		yield put(
-			receiveEntities(
-				{ refs, normalizedEntities: entities, validAtTime: time.format() }
-			)
-		);
-		yield put(
-			receiveIdentity(userId, freshAuthContext)
-		);
-	} else {
-		yield put(
-			receiveIdentity(null, freshAuthContext)
-		);
-	}
-
-	if (originalUserId && originalUserId !== userId) {
-		yield put(
-			forgetEntity(
-				{
-					modelName: userModelName,
-					entityId: originalUserId,
-				}
-			)
 		);
 	}
 }
 
 export function* loginTask(credentials) {
-	const apiService = yield select(apiServiceSelector);
-	const apiContext = yield select(apiContextSelector);
-	const authContext = yield select(authContextSelector);
+
+	yield put(
+		mergeResource(
+			{
+				collectionLink: {
+					name: 'logins',
+				},
+				data: {
+					...credentials,
+				}
+			}
+		)
+	);
+
+	const { success, failure } = yield race(
+		{
+			success: take(({ type, payload: { link } = {} }) => type === RECEIVE_PERSIST_RESOURCE_SUCCESS && link.name === 'LoginAttempt'),
+			failure: take(({ type, payload: { link } = {} }) => type === RECEIVE_PERSIST_RESOURCE_FAILURE && link.name === 'LoginAttempt'),
+		}
+	);
+
+	if (failure) {
+		const { payload: { error } } = failure;
+		yield put(
+			receiveLoginFailure(error)
+		);
+	} else {
+		yield call(refreshIdentityTask);
+		// yield put(
+		// 	receiveLoginSuccess(userId, freshAuthContext)
+		// );
+	}
+
+
+	return
+
+
+	// const apiService = yield select(apiServiceSelector);
+	// const apiContext = yield select(apiContextSelector);
+	// const authContext = yield select(authContextSelector);
 	let user = null;
 	let freshAuthContext = authContext;
 	try {
@@ -171,6 +181,7 @@ export function* loginTask(credentials) {
 		);
 		return;
 	}
+
 
 	// TODO validate user type
 
@@ -218,6 +229,52 @@ export function* loginTask(credentials) {
 }
 
 export function* logoutTask() {
+
+
+
+
+
+
+
+	yield put(
+		mergeResource(
+			{
+				collectionLink: {
+					name: 'logouts',
+				},
+			}
+		)
+	);
+
+	const { success, failure } = yield race(
+		{
+			success: take(({ type, payload: { link } = {} }) => type === RECEIVE_PERSIST_RESOURCE_SUCCESS && link.name === 'LogoutAttempt'),
+			failure: take(({ type, payload: { link } = {} }) => type === RECEIVE_PERSIST_RESOURCE_FAILURE && link.name === 'LogoutAttempt'),
+		}
+	);
+
+	if (failure) {
+		const { payload: { error } } = failure;
+		yield put(
+			receiveRefreshIdentityFailure(error)
+		);
+	} else {
+		debugger;
+		yield call(refreshIdentityTask);
+	}
+
+
+
+
+
+
+
+
+
+	return;
+
+
+
 	const apiService = yield select(apiServiceSelector);
 	const authContext = yield select(authContextSelector);
 	const apiContext = yield select(apiContextSelector);
@@ -261,12 +318,12 @@ export function* logoutTask() {
 
 export function* authFlow() {
 	// get initial state from ApiService
-	const ApiService = yield select(apiServiceSelector);
-	const initialStateAuthContext = yield select(authContextSelector);
-	const initialAuthContext = yield call(ApiService.getInitialAuthContext, initialStateAuthContext);
-	yield put(
-		initialize(initialAuthContext)
-	);
+	// const ApiService = yield select(apiServiceSelector);
+	// const initialStateAuthContext = yield select(authContextSelector);
+	// const initialAuthContext = yield call(ApiService.getInitialAuthContext, initialStateAuthContext);
+	// yield put(
+	// 	initialize(initialAuthContext)
+	// );
 
 	yield call(refreshIdentityTask);
 
@@ -299,12 +356,12 @@ export function* authFlow() {
 }
 
 export function* bootstrap() {
-	const entityDescriptorsInitialized = yield select(initializedSelector);
-	if (!entityDescriptorsInitialized) {
-		yield call(takeLatest, RECEIVE_ENTITY_DESCRIPTORS, authFlow);
-	} else {
-		yield call(authFlow);
-	}
+	// const entityDescriptorsInitialized = yield select(initializedSelector);
+	// if (!entityDescriptorsInitialized) {
+	// 	yield call(takeLatest, RECEIVE_ENTITY_DESCRIPTORS, authFlow);
+	// } else {
+	yield call(authFlow);
+	// }
 }
 
 export function* watchRefreshIdentity() {
