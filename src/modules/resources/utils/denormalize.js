@@ -1,14 +1,14 @@
 // @flow
 /* eslint-disable no-use-before-define, no-param-reassign */
-import { each, get as g, isObject, merge } from 'lodash';
+import { each, get as g, isObject, merge, clone } from 'lodash';
 
 import getIdPropertyName from 'client-core/src/modules/resources/utils/getIdPropertyName';
 import resolveSchema from 'client-core/src/modules/resources/utils/resolveSchema';
 import resolveSubschema from 'client-core/src/modules/resources/utils/resolveSubschema';
 
-import type { JsonSchema } from 'client-core/src/utils/types/JsonSchema';
-import type { Entity } from 'client-core/src/utils/types/Entity';
-import type { NormalizedEntityDictionary } from 'client-core/src/utils/types/NormalizedEntityDictionary';
+import type { JsonSchema } from 'client-core/src/types/JsonSchema';
+import type { Entity } from 'client-core/src/types/Entity';
+import type { NormalizedEntityDictionary } from 'client-core/src/types/NormalizedEntityDictionary';
 
 function resolveEntityOrId(entityOrId, schema, entityDictionary) {
 	const idPropertyName = getIdPropertyName(schema);
@@ -96,7 +96,7 @@ function visitEntity(obj, inputSchema, entityDictionary, bag, maxLevel, currentL
 		}
 	}
 
-	return bag[modelName][id];
+	return clone(bag[modelName][id]);
 }
 function visitArray(arr, schema, entityDictionary, bag, maxLevel, currentLevel) {
 	return arr.map(

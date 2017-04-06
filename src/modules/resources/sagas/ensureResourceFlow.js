@@ -11,7 +11,7 @@ import {
 // 	resourceSelectorFactory,
 // } from '../selectors';
 
-export function *ensureResourceTask(action) {
+export function* ensureResourceTask(action) {
 	const { link, relations } = action.payload;
 
 	// TODO implement invalidation ;)
@@ -21,6 +21,7 @@ export function *ensureResourceTask(action) {
 	// }
 }
 
-export default function *ensureResourceFlow() {
-	yield call(takeEvery, ENSURE_RESOURCE, ensureResourceTask);
+export default function* ensureResourceFlow() {
+	yield takeEvery(ENSURE_RESOURCE, ensureResourceTask);
+	// yield call(takeEvery, ENSURE_RESOURCE, ensureResourceTask);
 }

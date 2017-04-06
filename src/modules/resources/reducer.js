@@ -1,6 +1,6 @@
 // @flow
 import { get as g, each, isArray, includes } from 'lodash';
-import hash from 'object-hash';
+import hash from 'client-core/src/utils/hash';
 import Immutable from 'seamless-immutable';
 import t from 'tcomb';
 
@@ -8,8 +8,8 @@ import type { Resource } from 'client-core/src/modules/resources/types/Resource'
 import type { ResourceLink } from 'client-core/src/modules/resources/types/ResourceLink';
 import type { ResourcesService } from 'client-core/src/modules/resources/types/ResourcesService';
 
+import type { AppError } from 'client-core/src/types/AppError';
 import createReducer from 'client-core/src/utils/createReducer';
-import { RECEIVE_ENTITY_DESCRIPTORS } from 'client-core/src/modules/entityDescriptors/actions';
 
 import {
 	ENSURE_RESOURCE,
@@ -25,8 +25,6 @@ import {
 	RECEIVE_DELETE_RESOURCE_FAILURE,
 	DEFINE_RESOURCE,
 } from './actions';
-
-import type { Error } from 'client-core/src/utils/types/Error';
 
 const defaultResource = Immutable.from({
 	link: undefined,
@@ -127,7 +125,7 @@ export default createReducer(
 		[RECEIVE_FETCH_RESOURCE_FAILURE]: [
 			t.struct({
 				link: ResourceLink,
-				error: Error,
+				error: AppError,
 			}),
 			(state, action) => {
 				const { link, error } = action.payload;
@@ -397,7 +395,7 @@ export default createReducer(
 		[RECEIVE_DELETE_RESOURCE_FAILURE]: [
 			t.struct({
 				link: ResourceLink,
-				error: Error,
+				error: AppError,
 			}),
 			(state, { payload: { link, error } }) => {
 				const resourceId = hash(link);
@@ -406,9 +404,6 @@ export default createReducer(
 					.setIn(['resources', resourceId, 'deleting'], false);
 			},
 		],
-		[RECEIVE_ENTITY_DESCRIPTORS]: (state, { payload }) => {
-			return state.merge(payload);
-		},
 	},
 	'resources'
 );

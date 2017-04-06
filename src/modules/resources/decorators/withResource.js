@@ -1,8 +1,9 @@
-import container from 'client-core/src/utils/decorators/container';
+import container from 'client-core/src/decorators/container';
 
 import React from 'react';
 import { get as g, upperFirst } from 'lodash';
-import { compose, pure, lifecycle, withHandlers, withProps, branch } from 'client-core/src/utils/react-fp';
+import { compose, pure, withHandlers, withProps, branch } from 'recompose';
+import lifecycle from 'client-core/src/utils/lifecycle';
 import {
 	ensureResource,
 	mergeResource,
@@ -13,16 +14,16 @@ import {
 	denormalizedResourceSelectorFactory,
 } from 'client-core/src/modules/resources/selectors';
 
-import hash from 'object-hash';
+import hash from 'client-core/src/utils/hash';
 
 const emptyResource = {};
 
 export default ({
-	link: linkFactory,
-	linkPropName = 'resourceLink',
-	outputPropsPrefix = '',
-	autoload = false,
-}) => {
+		link: linkFactory,
+		linkPropName = 'resourceLink',
+		outputPropsPrefix = '',
+		autoload = false,
+	}) => {
 	const resourceLinkKey = outputPropsPrefix ? `${outputPropsPrefix}ResourceLink` : 'resourceLink';
 	const resourceKey = outputPropsPrefix ? `${outputPropsPrefix}Resource` : 'resource';
 	const resourceContentKey = outputPropsPrefix ? `${outputPropsPrefix}ResourceContent` : 'resourceContent';
@@ -62,13 +63,13 @@ export default ({
 					);
 				},
 				[`handleDelete${upperFirst(outputPropsPrefix)}Resource`]: ({
-					dispatch,
-					[resourceLinkKey]: resourceLink,
-				}) => ({ collectionsLinks }) => {
+						dispatch,
+						[resourceLinkKey]: resourceLink,
+					}) => ({ collectionsLinks, link: customLink }) => {
 					dispatch(
 						deleteResource(
 							{
-								link: resourceLink,
+								link: customLink || resourceLink,
 								collectionsLinks,
 							}
 						)
@@ -81,8 +82,7 @@ export default ({
 		),
 		lifecycle(
 			(
-				autoload ?
-				(
+				autoload ? (
 					{
 						componentWillMount({ [handleLoadResourceKey]: handleLoadResource }) {
 							handleLoadResource();

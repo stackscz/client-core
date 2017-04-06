@@ -40,13 +40,8 @@ export default function createStore(config: StoreConfig = {}, initialState = {})
 	const middleware = [
 		sagaMiddleware,
 	];
-	// if (process.env.NODE_ENV !== 'production') {
-	// 	if (config.logging !== false) {
-	// 		middleware.push(require('redux-logger')());
-	// 	}
-	// }
 
-	enhancers.push(applyMiddleware(...middleware));
+	enhancers.unshift(applyMiddleware(...middleware));
 
 	// avoid dependency on react-dom on server
 	if (process.env.UNIVERSAL_ENV !== 'server') {
@@ -58,10 +53,10 @@ export default function createStore(config: StoreConfig = {}, initialState = {})
 	}
 
 	const rootReducer = combineReducers(reducers);
-	const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
-	const store = composeEnhancers(...enhancers)(reduxCreateStore)(
+	const store = reduxCreateStore(
 		rootReducer,
-		initialState
+		initialState,
+		compose(...enhancers),
 	);
 	store.dispatch(init());
 	if (sagas.length) {

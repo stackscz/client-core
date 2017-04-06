@@ -1,5 +1,5 @@
 // @flow
-export type Error = {
+export type AppError = {
 	code: number,
 	message: string,
 	data?: any,

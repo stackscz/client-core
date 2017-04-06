@@ -1,4 +1,4 @@
-import { get as g, isObject, isArray } from 'lodash';
+import { get as g } from 'lodash';
 import { call, select, put } from 'redux-saga/effects';
 import { takeEvery } from 'redux-saga';
 import invariant from 'invariant';
@@ -18,15 +18,10 @@ import {
 	defineResource,
 } from '../actions';
 
-import {
-	forgetEntity,
-} from 'client-core/src/modules/entityStorage/actions';
-
 export function *deleteResourceTask({ payload: { link, collectionsLinks } }) {
 	// const resourceContent = g(resource, 'content');
 	const apiDescription = yield select(resourcesModuleStateSelector);
 	const resourceSchema = yield select(resourceSchemaSelectorFactory(link));
-	const modelName = g(resourceSchema, 'x-model');
 
 	// determine id property of model by name
 	const idPropertyName = getIdPropertyName(resourceSchema);
@@ -65,12 +60,6 @@ export function *deleteResourceTask({ payload: { link, collectionsLinks } }) {
 	}
 
 	yield put(receiveDeleteResourceSuccess({ link, collectionsLinks }));
-	yield (isArray(resourceContent) ? resourceContent : [resourceContent]).map((entityIdToForget) => {
-		if (!isObject(entityIdToForget) && !isArray(entityIdToForget)) {
-			return put(forgetEntity({ modelName, entityId: entityIdToForget }));
-		}
-		return undefined;
-	});
 }
 
 export default function *deleteResourceFlow() {

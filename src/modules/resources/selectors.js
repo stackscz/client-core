@@ -1,11 +1,8 @@
 import { get as g, isFunction } from 'lodash';
 import invariant from 'invariant';
-import hash from 'object-hash';
+import hash from 'client-core/src/utils/hash';
 import memoize from 'fast-memoize';
 import { createSelector } from 'reselect';
-import {
-	modelSchemasSelector,
-} from 'client-core/src/modules/entityDescriptors/selectors';
 import {
 	entityDictionarySelector,
 } from 'client-core/src/modules/entityStorage/selectors';
@@ -53,7 +50,7 @@ export const resourceSelectorFactory = memoize(
 );
 
 export const relatedResourceSelectorFactory = (link = {}, rel) => (state) => {
-	const definitions = modelSchemasSelector(state);
+	const definitions = definitionsSelector(state);
 	const { params, resourceSchema } = resolvedLinkSelectorFactory(link)(state);
 
 	let resourceSchemaRef = g(resourceSchema, '$ref', g(resourceSchema, 'items.$ref')); // TODO rename

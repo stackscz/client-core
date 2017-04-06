@@ -2,7 +2,7 @@ import { get as g, isUndefined } from 'lodash';
 import { call, select, put } from 'redux-saga/effects';
 import invariant from 'invariant';
 import { takeEvery } from 'redux-saga';
-import hash from 'object-hash';
+import hash from 'client-core/src/utils/hash';
 import resolveSubschema from 'client-core/src/modules/resources/utils/resolveSubschema';
 import normalizeResource from 'client-core/src/modules/resources/utils/normalizeResource';
 import getIdPropertyName from 'client-core/src/modules/resources/utils/getIdPropertyName';
@@ -89,9 +89,6 @@ export function *mergeResourceTask({ payload: { link, data: inputData, collectio
 		finalResourceSchema,
 		'self',
 	);
-	if(!selfLinkName) {
-		debugger
-	}
 	let selfLink = link;
 	if (!selfLink) {
 		selfLink = yield select(

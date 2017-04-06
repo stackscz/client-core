@@ -1,13 +1,14 @@
 // @flow
 import type { ResourceLink } from 'client-core/src/modules/resources/types/ResourceLink';
-import type { Error } from 'client-core/src/utils/types/Error';
+import type { AppError } from 'client-core/src/types/AppError';
+
 export type Resource = {
 	link: ResourceLink,
 	links: {
 		[rel: string]: string,
 	},
 	content?: any,
-	error?: Error,
+	error?: AppError,
 	transient: boolean,
 	fetching: boolean,
 	persisting: boolean,

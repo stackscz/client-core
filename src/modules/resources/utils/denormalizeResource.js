@@ -11,9 +11,11 @@ import getFirstNonNullSchemaType from 'client-core/src/modules/resources/utils/g
 import isSchemaEmpty from 'client-core/src/modules/resources/utils/isSchemaEmpty';
 
 
-import type { JsonSchema } from 'client-core/src/utils/types/JsonSchema';
-import type { Entity } from 'client-core/src/utils/types/Entity';
-import type { NormalizedEntityDictionary } from 'client-core/src/utils/types/NormalizedEntityDictionary';
+import type { JsonSchema } from 'client-core/src/modules/resources/types/JsonSchema';
+import type { Entity } from 'client-core/src/modules/entityStorage/types/Entity';
+import type {
+	NormalizedEntityDictionary,
+} from 'client-core/src/modules/entityStorage/types/NormalizedEntityDictionary';
 
 function resolveEntityOrId(entityOrId, schema, entityDictionary) {
 	const idPropertyName = getIdPropertyName(schema);
@@ -153,8 +155,8 @@ function visit(obj, inputSchema, entityDictionary, bag, maxLevel, currentLevel =
  * @param {?number} maxLevel - max level of nesting when denormalizing
  */
 export default function denormalizeResource(obj,
-                                    schema: JsonSchema,
-                                    entityDictionary: NormalizedEntityDictionary,
-                                    maxLevel: number = 1): Entity|Array<Entity> {
+	schema: JsonSchema,
+	entityDictionary: NormalizedEntityDictionary,
+	maxLevel: number = 1): Entity | Array<Entity> {
 	return visit(obj, schema, entityDictionary, {}, maxLevel);
 }

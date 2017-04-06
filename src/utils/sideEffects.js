@@ -1,5 +1,11 @@
-import moment from 'moment';
+import df from 'date-fns';
 
-const now = () => moment();
+const now = () => {
+	return {
+		format: () => {
+			return df.format(new Date());
+		},
+	};
+};
 
 export { now };

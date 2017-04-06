@@ -45,18 +45,22 @@ export default (apiDescription, link) => {
 	const queryParams = {};
 	try {
 		each(parameters, (parameter) => {
-			if (g(parameter, 'in') === 'body') {
+			const paramLocation = g(parameter, 'in');
+			if (paramLocation === 'body') {
 				return;
 			}
+			const isParamRequired = g(parameter, 'required', false);
 			const linkParamName = g(parameter, 'name');
 			const linkParamPath = g(parameter, 'x-linkParam');
 			const paramValue = g(params, linkParamPath);
+			const isOptionalQueryParam = paramLocation === 'query' && !isParamRequired;
 			invariant(
-				paramValue,
+				isOptionalQueryParam || paramValue,
 				'link param %s not present for link name %s, params: %s',
 				linkParamPath,
 				name,
-				JSON.stringify(params, null, 2)
+				// do not stringify when invariant passing
+				!(isOptionalQueryParam || paramValue) && JSON.stringify(params, null, 2),
 			);
 			set(finalParams, linkParamPath, paramValue);
 			set(expandParams, linkParamName, paramValue);
