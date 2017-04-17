@@ -1,6 +1,5 @@
 import { get as g } from 'lodash';
-import { call, select, put } from 'redux-saga/effects';
-import { takeEvery } from 'redux-saga';
+import { call, select, put, takeEvery } from 'redux-saga/effects';
 import hash from 'client-core/src/utils/hash';
 import normalizeResource from 'client-core/src/modules/resources/utils/normalizeResource';
 
@@ -112,7 +111,6 @@ export function *fetchResourceTask(action) {
 	yield put(
 		receiveEntities(
 			{
-				refs: {},
 				normalizedEntities: entities,
 				validAtTime,
 			}
@@ -130,5 +128,5 @@ export function *fetchResourceTask(action) {
 }
 
 export default function *fetchResourceFlow() {
-	yield call(takeEvery, FETCH_RESOURCE, fetchResourceTask);
+	yield takeEvery(FETCH_RESOURCE, fetchResourceTask);
 }

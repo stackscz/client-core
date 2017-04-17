@@ -28,8 +28,8 @@
  * @type {object}
  */
 export const RECEIVE_ENTITIES = 'client-core/src/entityStorage/RECEIVE_ENTITIES';
-export function receiveEntities({ refs, normalizedEntities, validAtTime }) {
-	return { type: RECEIVE_ENTITIES, payload: { refs, normalizedEntities, validAtTime } };
+export function receiveEntities({ normalizedEntities, validAtTime }) {
+	return { type: RECEIVE_ENTITIES, payload: { normalizedEntities, validAtTime } };
 }
 
 /**

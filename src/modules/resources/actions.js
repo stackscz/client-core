@@ -60,3 +60,8 @@ export const RECEIVE_DELETE_RESOURCE_SUCCESS = 'client-core/src/resources/RECEIV
 export function receiveDeleteResourceSuccess({ link, collectionsLinks }) {
 	return { type: RECEIVE_DELETE_RESOURCE_SUCCESS, payload: { link, collectionsLinks } };
 }
+
+export const FORGET_RESOURCE = 'client-core/src/resources/FORGET_RESOURCE';
+export function forgetResource({ link, collectionsLinks }) {
+	return { type: FORGET_RESOURCE, payload: { link, collectionsLinks } };
+}

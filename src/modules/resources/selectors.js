@@ -3,9 +3,7 @@ import invariant from 'invariant';
 import hash from 'client-core/src/utils/hash';
 import memoize from 'fast-memoize';
 import { createSelector } from 'reselect';
-import {
-	entityDictionarySelector,
-} from 'client-core/src/modules/entityStorage/selectors';
+import { entityDictionarySelector } from 'client-core/src/modules/entityStorage/selectors';
 import denormalizeResource from 'client-core/src/modules/resources/utils/denormalizeResource';
 import findRelationLinkName from 'client-core/src/modules/resources/utils/findRelationLinkName';
 import getIdPropertyName from 'client-core/src/modules/resources/utils/getIdPropertyName';

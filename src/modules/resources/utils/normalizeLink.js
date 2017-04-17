@@ -1,4 +1,4 @@
-import { get as g, set, reduce, each } from 'lodash';
+import { get as g, set, reduce, each, size } from 'lodash';
 import { INTERNAL_ID_PROPERTY_NAME } from 'client-core/src/modules/resources/constants';
 
 export default (link, paths) => {
@@ -16,24 +16,29 @@ export default (link, paths) => {
 		},
 		undefined
 	);
-	if (!parameters) {
-		parameters = [
-			{
-				name: INTERNAL_ID_PROPERTY_NAME,
-				'x-linkParam': INTERNAL_ID_PROPERTY_NAME,
-			},
-		];
-	}
+	// if (!parameters) {
+	// 	parameters = [
+	// 		{
+	// 			name: INTERNAL_ID_PROPERTY_NAME,
+	// 			'x-linkParam': INTERNAL_ID_PROPERTY_NAME,
+	// 		},
+	// 	];
+	// }
 
 	const finalParams = {};
 	each(parameters, (parameter) => {
 		const linkParamPath = g(parameter, 'x-linkParam');
 		const paramValue = g(linkParams, linkParamPath);
-		set(finalParams, linkParamPath, paramValue);
+		if (paramValue) {
+			set(finalParams, linkParamPath, paramValue);
+		}
 	});
 
-	return {
+	const result = {
 		name: linkName,
-		params: finalParams,
 	};
+	if (size(finalParams)) {
+		result.params = finalParams;
+	}
+	return result;
 };

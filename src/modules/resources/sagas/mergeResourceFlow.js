@@ -1,7 +1,6 @@
 import { get as g, isUndefined } from 'lodash';
-import { call, select, put } from 'redux-saga/effects';
+import { call, select, put, takeEvery } from 'redux-saga/effects';
 import invariant from 'invariant';
-import { takeEvery } from 'redux-saga';
 import hash from 'client-core/src/utils/hash';
 import resolveSubschema from 'client-core/src/modules/resources/utils/resolveSubschema';
 import normalizeResource from 'client-core/src/modules/resources/utils/normalizeResource';
@@ -120,7 +119,6 @@ export function *mergeResourceTask({ payload: { link, data: inputData, collectio
 	yield put(
 		receiveEntities(
 			{
-				refs: {},
 				normalizedEntities,
 				validAtTime: validAtTime.format(),
 			}
@@ -222,7 +220,6 @@ export function *mergeResourceTask({ payload: { link, data: inputData, collectio
 	yield put(
 		receiveEntities(
 			{
-				refs: {},
 				normalizedEntities: receivedNormalizedEntities,
 				validAtTime: validAtTime.format(),
 			}
@@ -242,5 +239,5 @@ export function *mergeResourceTask({ payload: { link, data: inputData, collectio
 }
 
 export default function *mergeResourceFlow() {
-	yield call(takeEvery, MERGE_RESOURCE, mergeResourceTask);
+	yield takeEvery(MERGE_RESOURCE, mergeResourceTask);
 }

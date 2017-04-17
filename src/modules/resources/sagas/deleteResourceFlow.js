@@ -1,6 +1,5 @@
 import { get as g } from 'lodash';
-import { call, select, put } from 'redux-saga/effects';
-import { takeEvery } from 'redux-saga';
+import { call, select, put, takeEvery } from 'redux-saga/effects';
 import invariant from 'invariant';
 import rethrowError from 'client-core/src/utils/rethrowError';
 import getIdPropertyName from 'client-core/src/modules/resources/utils/getIdPropertyName';
@@ -26,7 +25,7 @@ export function *deleteResourceTask({ payload: { link, collectionsLinks } }) {
 	// determine id property of model by name
 	const idPropertyName = getIdPropertyName(resourceSchema);
 	const entityId = g(link, ['params', idPropertyName]);
-	invariant(entityId, 'Couldn\'t determine entityId to delete');
+	// invariant(entityId, 'Couldn\'t determine entityId to delete');
 
 	let resource = yield select(resourceSelectorFactory(link));
 	let resourceContent = g(resource, 'content');
@@ -36,7 +35,7 @@ export function *deleteResourceTask({ payload: { link, collectionsLinks } }) {
 			defineResource(
 				{
 					link,
-					content: entityId,
+					// content: entityId,
 				}
 			)
 		);
@@ -63,5 +62,5 @@ export function *deleteResourceTask({ payload: { link, collectionsLinks } }) {
 }
 
 export default function *deleteResourceFlow() {
-	yield call(takeEvery, DELETE_RESOURCE, deleteResourceTask);
+	yield takeEvery(DELETE_RESOURCE, deleteResourceTask);
 }

@@ -24,6 +24,7 @@ import {
 	RECEIVE_DELETE_RESOURCE_SUCCESS,
 	RECEIVE_DELETE_RESOURCE_FAILURE,
 	DEFINE_RESOURCE,
+	FORGET_RESOURCE,
 } from './actions';
 
 const defaultResource = Immutable.from({
@@ -44,6 +45,41 @@ const resourceDefaults = (state, resourceId, updateData) => {
 	);
 	return newResource.merge(updateData);
 };
+
+const removeResourceHandlerSpec = [
+	t.struct({
+		link: ResourceLink,
+		collectionsLinks: t.maybe(t.list(ResourceLink)),
+	}),
+	(state, { payload: { link, collectionsLinks } }) => {
+		let newState = state;
+		const resourceId = hash(link);
+		const resource = g(newState, ['resources', resourceId]);
+		if (resource) {
+			const idToRemove = g(resource, 'content');
+			if (!isArray(idToRemove)) {
+				each(collectionsLinks, (collectionLink) => {
+					const collectionResourceId = hash(collectionLink);
+					const collectionResource = g(newState, ['resources', collectionResourceId]);
+					if (collectionResource) {
+						const collectionResourceContent = g(collectionResource, 'content');
+						if (isArray(collectionResourceContent) && collectionResourceContent.includes(idToRemove)) {
+							newState = newState.updateIn(
+								['resources', collectionResourceId, 'content'],
+								(currentCollectionResourceContent) =>
+									currentCollectionResourceContent.filter(containedEntityId => containedEntityId !== idToRemove)
+							);
+						}
+					}
+				});
+			}
+		}
+
+		return newState.updateIn(['resources'], (currentResources) =>
+			currentResources.without(resourceId)
+		);
+	},
+];
 
 export default createReducer(
 	t.struct({
@@ -150,14 +186,10 @@ export default createReducer(
 			t.struct({
 				link: ResourceLink,
 				transientLink: t.maybe(ResourceLink),
-				links: t.dict(
-					t.String,
-					t.String,
-				),
 				content: t.Any,
 			}),
 			(state, action) => {
-				const { link, links, content, transientLink } = action.payload;
+				const { link, content, transientLink } = action.payload;
 				const resourceId = hash(link);
 				let newState = state;
 				if (transientLink) {
@@ -173,8 +205,8 @@ export default createReducer(
 						}
 						return baseResource.merge(
 							{
+								link,
 								content,
-								links,
 								error: undefined,
 								fetching: false,
 							},
@@ -358,40 +390,7 @@ export default createReducer(
 				return state.setIn(['resources', resourceId], newResource);
 			},
 		],
-		[RECEIVE_DELETE_RESOURCE_SUCCESS]: [
-			t.struct({
-				link: ResourceLink,
-				collectionsLinks: t.maybe(t.list(ResourceLink)),
-			}),
-			(state, { payload: { link, collectionsLinks } }) => {
-				let newState = state;
-				const resourceId = hash(link);
-				const resource = g(newState, ['resources', resourceId]);
-				if (resource) {
-					const idToRemove = g(resource, 'content');
-					if (!isArray(idToRemove)) {
-						each(collectionsLinks, (collectionLink) => {
-							const collectionResourceId = hash(collectionLink);
-							const collectionResource = g(newState, ['resources', collectionResourceId]);
-							if (collectionResource) {
-								const collectionResourceContent = g(collectionResource, 'content');
-								if (isArray(collectionResourceContent) && collectionResourceContent.includes(idToRemove)) {
-									newState = newState.updateIn(
-										['resources', collectionResourceId, 'content'],
-										(currentCollectionResourceContent) =>
-											currentCollectionResourceContent.filter(containedEntityId => containedEntityId !== idToRemove)
-									);
-								}
-							}
-						});
-					}
-				}
-
-				return newState.updateIn(['resources'], (currentResources) =>
-					currentResources.without(resourceId)
-				);
-			},
-		],
+		[RECEIVE_DELETE_RESOURCE_SUCCESS]: removeResourceHandlerSpec,
 		[RECEIVE_DELETE_RESOURCE_FAILURE]: [
 			t.struct({
 				link: ResourceLink,
@@ -404,6 +403,7 @@ export default createReducer(
 					.setIn(['resources', resourceId, 'deleting'], false);
 			},
 		],
+		[FORGET_RESOURCE]: removeResourceHandlerSpec,
 	},
 	'resources'
 );
