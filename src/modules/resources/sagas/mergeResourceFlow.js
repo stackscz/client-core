@@ -6,6 +6,7 @@ import resolveSubschema from 'client-core/src/modules/resources/utils/resolveSub
 import normalizeResource from 'client-core/src/modules/resources/utils/normalizeResource';
 import getIdPropertyName from 'client-core/src/modules/resources/utils/getIdPropertyName';
 import stripReadOnlyProperties from 'client-core/src/modules/resources/utils/stripReadOnlyProperties';
+import stripWriteOnlyProperties from 'client-core/src/modules/resources/utils/stripWriteOnlyProperties';
 import rethrowError from 'client-core/src/utils/rethrowError';
 
 import { receiveEntities } from 'client-core/src/modules/entityStorage/actions';
@@ -107,11 +108,12 @@ export function *mergeResourceTask({ payload: { link, data: inputData, collectio
 	//
 	// Normalize entity data.
 	//
+	const dataToReceive = stripWriteOnlyProperties(data, finalResourceSchema);
 	const {
 		result: resourceNormalizationResult,
 		entities: normalizedEntities,
 	} = normalizeResource(
-		data,
+		dataToReceive,
 		finalResourceSchema,
 	);
 
@@ -140,7 +142,6 @@ export function *mergeResourceTask({ payload: { link, data: inputData, collectio
 	const apiDescription = yield select(resourcesModuleStateSelector);
 
 	const ApiService = yield select(resourcesServiceSelector);
-
 
 	const dataToTransfer = stripReadOnlyProperties(data, finalResourceSchema);
 
