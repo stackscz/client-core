@@ -1,5 +1,5 @@
 import { get as g, set, reduce, each, size } from 'lodash';
-import { INTERNAL_ID_PROPERTY_NAME } from 'client-core/src/modules/resources/constants';
+import { INTERNAL_ID_PROPERTY_NAME } from 'modules/resources/constants';
 
 export default (link, paths) => {
 	const { name: linkName, params: linkParams } = link;

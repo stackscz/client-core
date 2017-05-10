@@ -1,9 +1,9 @@
-import type { ResourceLink } from 'client-core/src/modules/resources/types/ResourceLink';
+import type { ResourceLink } from 'modules/resources/types/ResourceLink';
 import { get as g } from 'lodash';
 import axios from 'axios';
-import resolveSubschema from 'client-core/src/modules/resources/utils/resolveSubschema';
-import resolveResourceLink from 'client-core/src/modules/resources/utils/resolveResourceLink';
-import validateResource from 'client-core/src/modules/resources/utils/validateResource';
+import resolveSubschema from 'modules/resources/utils/resolveSubschema';
+import resolveResourceLink from 'modules/resources/utils/resolveResourceLink';
+import validateResource from 'modules/resources/utils/validateResource';
 
 let createWrappedPromise = (cb) => new Promise(
 	(resolve, reject) => {

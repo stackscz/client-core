@@ -7,9 +7,9 @@ import {
 	combineReducers,
 } from 'redux';
 import createSagaMiddleware from 'redux-saga';
-import { init } from 'client-core/src/utils/actions';
+import { init } from 'utils/actions';
 
-import type { StoreConfig } from 'client-core/src/types/StoreConfig';
+import type { StoreConfig } from 'types/StoreConfig';
 
 function runSaga(sagaMiddleware: Function, saga: Function): void {
 	sagaMiddleware.run(saga);

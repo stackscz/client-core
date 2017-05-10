@@ -1,0 +1,18 @@
+{
+  "name": "examples",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "re-app-builder": "node ./node_modules/re-app-builder/bin",
+    "dev": "npm run re-app-builder dev"
+  },
+  "devDependencies": {
+    "re-app-builder": "^1.0.0-dev.27"
+  },
+  "dependencies": {
+    "client-core": "https://gitlab.stacks.cz/brabeji/client-core.git#858fcbb74ad457aa127adca92e34d03660af77d1",
+    "react": "^15.5.4",
+    "react-dom": "^15.5.4"
+  }
+}

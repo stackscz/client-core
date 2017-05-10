@@ -1,8 +1,8 @@
 import { get as g } from 'lodash';
 import { call, select, put, takeEvery } from 'redux-saga/effects';
 import invariant from 'invariant';
-import rethrowError from 'client-core/src/utils/rethrowError';
-import getIdPropertyName from 'client-core/src/modules/resources/utils/getIdPropertyName';
+import rethrowError from 'utils/rethrowError';
+import getIdPropertyName from 'modules/resources/utils/getIdPropertyName';
 import {
 	resourcesModuleStateSelector,
 	resourcesServiceSelector,

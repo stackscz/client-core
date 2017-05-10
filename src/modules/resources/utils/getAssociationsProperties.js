@@ -1,7 +1,7 @@
 import { each, get as g } from 'lodash';
-import walkSchemaProperties from 'client-core/src/modules/resources/utils/walkSchemaProperties';
-import resolveSchema from 'client-core/src/modules/resources/utils/resolveSchema';
-import resolveSubschema from 'client-core/src/modules/resources/utils/resolveSubschema';
+import walkSchemaProperties from 'modules/resources/utils/walkSchemaProperties';
+import resolveSchema from 'modules/resources/utils/resolveSchema';
+import resolveSubschema from 'modules/resources/utils/resolveSubschema';
 
 export default function getAssociationsProperties(inputSchema) {
 	const schema = resolveSchema(inputSchema);

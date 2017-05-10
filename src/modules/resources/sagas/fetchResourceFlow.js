@@ -1,15 +1,15 @@
 import { get as g } from 'lodash';
 import { call, select, put, takeEvery } from 'redux-saga/effects';
-import hash from 'client-core/src/utils/hash';
-import normalizeResource from 'client-core/src/modules/resources/utils/normalizeResource';
+import hash from 'utils/hash';
+import normalizeResource from 'modules/resources/utils/normalizeResource';
 
-import { receiveEntities } from 'client-core/src/modules/entityStorage/actions';
-import { now } from 'client-core/src/utils/sideEffects';
+import { receiveEntities } from 'modules/entityStorage/actions';
+import { now } from 'utils/sideEffects';
 
-import { resourcesServiceSelector, resourcesModuleStateSelector } from 'client-core/src/modules/resources/selectors';
-import findResourceLinksNames from 'client-core/src/modules/resources/utils/findResourceLinksNames';
-import findRelationLinkName from 'client-core/src/modules/resources/utils/findRelationLinkName';
-import rethrowError from 'client-core/src/utils/rethrowError';
+import { resourcesServiceSelector, resourcesModuleStateSelector } from 'modules/resources/selectors';
+import findResourceLinksNames from 'modules/resources/utils/findResourceLinksNames';
+import findRelationLinkName from 'modules/resources/utils/findRelationLinkName';
+import rethrowError from 'utils/rethrowError';
 
 import {
 	FETCH_RESOURCE,

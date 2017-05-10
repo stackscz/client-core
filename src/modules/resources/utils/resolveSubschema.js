@@ -1,5 +1,5 @@
 import { get as g } from 'lodash';
-import resolveSchema from 'client-core/src/modules/resources/utils/resolveSchema';
+import resolveSchema from 'modules/resources/utils/resolveSchema';
 
 export default (inputSchema, subschemaPath) => {
 	const schema = resolveSchema(inputSchema);

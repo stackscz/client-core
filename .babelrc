@@ -1,0 +1,38 @@
+{
+  "presets": [
+	"react",
+	"es2015",
+	"stage-0"
+  ],
+  "plugins": [
+	[
+	  "lodash",
+	  {
+		"id": [
+		  "lodash",
+		  "recompose"
+		]
+	  }
+	],
+	[
+	  "module-resolver",
+	  {
+		"root": [
+		  "./src"
+		],
+		"alias": {
+		  "components": "./src/components",
+		  "modules": "./src/modules",
+		  "services": "./src/services",
+		  "types": "./src/types",
+		  "utils": "./src/utils"
+		}
+	  }
+	],
+	"babel-plugin-external-helpers",
+	"syntax-flow",
+	"transform-runtime",
+	"tcomb",
+	"transform-flow-strip-types"
+  ]
+}

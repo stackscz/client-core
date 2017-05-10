@@ -1,12 +1,12 @@
 import { get as g, setWith, isObject, isArray, each, isEqual, isUndefined } from 'lodash';
 import invariant from 'invariant';
-import resolveSchema from 'client-core/src/modules/resources/utils/resolveSchema';
-import resolveSubschema from 'client-core/src/modules/resources/utils/resolveSubschema';
-import getIdPropertyName from 'client-core/src/modules/resources/utils/getIdPropertyName';
-import walkSchemaProperties from 'client-core/src/modules/resources/utils/walkSchemaProperties';
-import pickFirstNonNullSchema from 'client-core/src/modules/resources/utils/pickFirstNonNullSchema';
-import getFirstNonNullSchemaType from 'client-core/src/modules/resources/utils/getFirstNonNullSchemaType';
-import isSchemaEmpty from 'client-core/src/modules/resources/utils/isSchemaEmpty';
+import resolveSchema from 'modules/resources/utils/resolveSchema';
+import resolveSubschema from 'modules/resources/utils/resolveSubschema';
+import getIdPropertyName from 'modules/resources/utils/getIdPropertyName';
+import walkSchemaProperties from 'modules/resources/utils/walkSchemaProperties';
+import pickFirstNonNullSchema from 'modules/resources/utils/pickFirstNonNullSchema';
+import getFirstNonNullSchemaType from 'modules/resources/utils/getFirstNonNullSchemaType';
+import isSchemaEmpty from 'modules/resources/utils/isSchemaEmpty';
 
 const mergeIntoEntity = (entityA, entityB, modelName) => {
 	each(entityB, (value, key) => {

@@ -1,7 +1,7 @@
 /* eslint-disable no-param-reassign */
 import { get as g, each, keys } from 'lodash';
-import resolveSchema from 'client-core/src/modules/resources/utils/resolveSchema';
-import resolveSubschema from 'client-core/src/modules/resources/utils/resolveSubschema';
+import resolveSchema from 'modules/resources/utils/resolveSchema';
+import resolveSubschema from 'modules/resources/utils/resolveSubschema';
 
 function visitSchema(inputSchema, writeOnlyProperties) {
 	const schema = resolveSchema(inputSchema);

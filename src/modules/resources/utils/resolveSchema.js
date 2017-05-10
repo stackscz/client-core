@@ -1,6 +1,6 @@
 import { get as g } from 'lodash';
 import invariant from 'invariant';
-import findSchemaByRef from 'client-core/src/modules/resources/utils/findSchemaByRef';
+import findSchemaByRef from 'modules/resources/utils/findSchemaByRef';
 
 export default (schema) => {
 	const schemaRef = g(schema, '$ref');

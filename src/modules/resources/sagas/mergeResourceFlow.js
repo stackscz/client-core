@@ -1,21 +1,21 @@
 import { get as g, isUndefined } from 'lodash';
 import { call, select, put, takeEvery } from 'redux-saga/effects';
 import invariant from 'invariant';
-import hash from 'client-core/src/utils/hash';
-import resolveSubschema from 'client-core/src/modules/resources/utils/resolveSubschema';
-import normalizeResource from 'client-core/src/modules/resources/utils/normalizeResource';
-import getIdPropertyName from 'client-core/src/modules/resources/utils/getIdPropertyName';
-import stripReadOnlyProperties from 'client-core/src/modules/resources/utils/stripReadOnlyProperties';
-import stripWriteOnlyProperties from 'client-core/src/modules/resources/utils/stripWriteOnlyProperties';
-import rethrowError from 'client-core/src/utils/rethrowError';
+import hash from 'utils/hash';
+import resolveSubschema from 'modules/resources/utils/resolveSubschema';
+import normalizeResource from 'modules/resources/utils/normalizeResource';
+import getIdPropertyName from 'modules/resources/utils/getIdPropertyName';
+import stripReadOnlyProperties from 'modules/resources/utils/stripReadOnlyProperties';
+import stripWriteOnlyProperties from 'modules/resources/utils/stripWriteOnlyProperties';
+import rethrowError from 'utils/rethrowError';
 
-import { receiveEntities } from 'client-core/src/modules/entityStorage/actions';
-import { now } from 'client-core/src/utils/sideEffects';
+import { receiveEntities } from 'modules/entityStorage/actions';
+import { now } from 'utils/sideEffects';
 
 import {
 	resourcesServiceSelector,
 	resourcesModuleStateSelector,
-} from 'client-core/src/modules/resources/selectors';
+} from 'modules/resources/selectors';
 
 import {
 	MERGE_RESOURCE,
@@ -29,8 +29,8 @@ import {
 	resourceSelectorFactory,
 } from '../selectors';
 
-import findRelationLinkName from 'client-core/src/modules/resources/utils/findRelationLinkName';
-import { INTERNAL_ID_PROPERTY_NAME } from 'client-core/src/modules/resources/constants';
+import findRelationLinkName from 'modules/resources/utils/findRelationLinkName';
+import { INTERNAL_ID_PROPERTY_NAME } from 'modules/resources/constants';
 
 // TODO rename `collectionLink` to `parentLink`
 export function *mergeResourceTask({ payload: { link, data: inputData, collectionLink } }) {

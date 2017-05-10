@@ -1,0 +1,33 @@
+#root, body, html
+  height: 100%
+  margin: 0
+
+@import "~normalize.css"
+
+.Showcase
+  display: flex
+  height: 100%
+
+  &-componentsList, &-componentConfig, &-componentShowcase
+    flex: 0 0 auto
+    height: 100%
+
+  &-componentShowcase
+    flex: 1 0 auto
+
+  &-componentsList
+    background: #ccc
+
+  &-componentConfig
+    background: #aaa
+
+  &-componentShowcase
+    position: relative
+
+  &-componentShowcaseWrapper
+    position: absolute
+    top: 0
+    left: 0
+    bottom: 0
+    right: 0
+    overflow: auto

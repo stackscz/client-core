@@ -1,22 +1,22 @@
-import container from 'client-core/src/decorators/container';
+import { connect } from 'react-redux';
 
 import React from 'react';
 import { get as g, upperFirst, omit } from 'lodash';
 import { compose, pure, withHandlers, withProps, branch, mapProps } from 'recompose';
-import lifecycle from 'client-core/src/utils/lifecycle';
+import lifecycle from 'utils/lifecycle';
 import {
 	ensureResource,
 	fetchResource,
 	mergeResource,
 	deleteResource,
 	forgetResource,
-} from 'client-core/src/modules/resources/actions';
+} from 'modules/resources/actions';
 import {
 	resourceSelectorFactory,
 	denormalizedResourceSelectorFactory,
-} from 'client-core/src/modules/resources/selectors';
+} from 'modules/resources/selectors';
 
-import hash from 'client-core/src/utils/hash';
+import hash from 'utils/hash';
 
 const emptyResource = {};
 
@@ -43,7 +43,7 @@ export default ({
 				(props) => ({ link: g(props, linkPropName) })
 			),
 		),
-		container(
+		connect(
 			(state, ownerProps) => {
 				const { link: resourceLink } = ownerProps;
 				const denormalizedResource = denormalizedResourceSelectorFactory(resourceLink, 5)(state);

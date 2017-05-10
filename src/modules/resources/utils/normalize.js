@@ -1,13 +1,13 @@
 // @flow
 /* eslint-disable no-param-reassign */
 import { get as g, merge, isObject, memoize, reduce, each, isEqual, isArray } from 'lodash';
-import safeJSONStringify from 'client-core/src/safeJSONStrigify';
-import mergeWithArraysUnique from 'client-core/src/mergeWithArraysUnique';
-import resolveSchema from 'client-core/src/modules/resources/utils/resolveSchema';
-import resolveSubschema from 'client-core/src/modules/resources/utils/resolveSubschema';
-import type { EntityId } from 'client-core/src/types/EntityId';
-import type { JsonSchema } from 'client-core/src/types/JsonSchema';
-import type { NormalizedEntityDictionary } from 'client-core/src/types/NormalizedEntityDictionary';
+import safeJSONStringify from 'safeJSONStrigify';
+import mergeWithArraysUnique from 'mergeWithArraysUnique';
+import resolveSchema from 'modules/resources/utils/resolveSchema';
+import resolveSubschema from 'modules/resources/utils/resolveSubschema';
+import type { EntityId } from 'types/EntityId';
+import type { JsonSchema } from 'types/JsonSchema';
+import type { NormalizedEntityDictionary } from 'types/NormalizedEntityDictionary';
 type NormalizationResult = {
 	entities: NormalizedEntityDictionary,
 	result: EntityId | Array<EntityId>,

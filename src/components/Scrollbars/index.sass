@@ -1,0 +1,57 @@
+.Scrollbars
+  &-trackHorizontal
+    right: 6px
+    bottom: 0
+    left: 0
+    border-radius: 0
+
+  &-thumbHorizontal
+    right: 0
+    bottom: 0
+    top: 0
+    border-radius: 0
+    z-index: 10
+
+  &-trackVertical
+    right: 0
+    bottom: 0
+    top: 0
+    border-radius: 0
+
+  &-thumbVertical
+    cursor: pointer
+    border-radius: 0
+    position: relative
+    z-index: 1
+
+    &:before
+      position: absolute
+      top: 0
+      bottom: 0
+      right: 0
+      left: -10px
+      content: ''
+      display: block
+
+  &-view
+
+  &--flexChild
+    flex-grow: 1
+
+  &--flexContainer
+    display: flex
+    flex-direction: column
+
+  &--staticContainer
+    .Scrollbars-view
+      position: static !important
+
+  &--horizontalOnly
+    .Scrollbars-view
+      overflow-x: scroll !important
+      overflow-y: hidden !important
+
+  &--verticalOnly
+    .Scrollbars-view
+      overflow-x: hidden !important
+      overflow-y: scroll !important

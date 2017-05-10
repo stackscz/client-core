@@ -1,15 +1,15 @@
 import { get as g, each, union, reduce } from 'lodash';
-import hash from 'client-core/src/utils/hash';
+import hash from 'utils/hash';
 import Immutable from 'seamless-immutable';
 import t from 'tcomb';
 
-import createReducer from 'client-core/src/utils/createReducer';
+import createReducer from 'utils/createReducer';
 
-import type { CollectionName } from 'client-core/src/modules/entityStorage/types/CollectionName';
-import type { EntityId } from 'client-core/src/modules/entityStorage/types/EntityId';
+import type { CollectionName } from 'modules/entityStorage/types/CollectionName';
+import type { EntityId } from 'modules/entityStorage/types/EntityId';
 import type {
 	NormalizedEntityDictionary,
-} from 'client-core/src/modules/entityStorage/types/NormalizedEntityDictionary';
+} from 'modules/entityStorage/types/NormalizedEntityDictionary';
 
 
 import {

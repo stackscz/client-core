@@ -1,15 +1,15 @@
 // @flow
 import { get as g, each, isArray, includes } from 'lodash';
-import hash from 'client-core/src/utils/hash';
+import hash from 'utils/hash';
 import Immutable from 'seamless-immutable';
 import t from 'tcomb';
 
-import type { Resource } from 'client-core/src/modules/resources/types/Resource';
-import type { ResourceLink } from 'client-core/src/modules/resources/types/ResourceLink';
-import type { ResourcesService } from 'client-core/src/modules/resources/types/ResourcesService';
+import type { Resource } from 'modules/resources/types/Resource';
+import type { ResourceLink } from 'modules/resources/types/ResourceLink';
+import type { ResourcesService } from 'modules/resources/types/ResourcesService';
 
-import type { AppError } from 'client-core/src/types/AppError';
-import createReducer from 'client-core/src/utils/createReducer';
+import type { AppError } from 'types/AppError';
+import createReducer from 'utils/createReducer';
 
 import {
 	ENSURE_RESOURCE,

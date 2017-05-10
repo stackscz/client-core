@@ -1,4 +1,4 @@
-export default function (moduleName, reducer = {}, sagas = []) {
+export default function (moduleName, reducer = state => state, sagas = []) {
 	return {
 		reducers: {
 			[moduleName]: reducer,

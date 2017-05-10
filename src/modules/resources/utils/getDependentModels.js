@@ -1,7 +1,7 @@
 import { get as g, each, includes } from 'lodash';
-import getComposingModels from 'client-core/src/modules/resources/utils/getComposingModels';
-import resolveSchema from 'client-core/src/modules/resources/utils/resolveSchema';
-import resolveSubschema from 'client-core/src/modules/resources/utils/resolveSubschema';
+import getComposingModels from 'modules/resources/utils/getComposingModels';
+import resolveSchema from 'modules/resources/utils/resolveSchema';
+import resolveSubschema from 'modules/resources/utils/resolveSubschema';
 
 export default function getDependentModels(inputSchema) {
 	if (!inputSchema) {

@@ -1,5 +1,5 @@
 import { get as g, isArray } from 'lodash';
-import resolveSubschema from 'client-core/src/modules/resources/utils/resolveSubschema';
+import resolveSubschema from 'modules/resources/utils/resolveSubschema';
 
 
 const pickFirstNonNullSchema = (schema) => {

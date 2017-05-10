@@ -2,20 +2,20 @@
 /* eslint-disable no-use-before-define, no-param-reassign */
 import { each, get as g, isObject, clone } from 'lodash';
 
-import getIdPropertyName from 'client-core/src/modules/resources/utils/getIdPropertyName';
-import resolveSchema from 'client-core/src/modules/resources/utils/resolveSchema';
-import resolveSubschema from 'client-core/src/modules/resources/utils/resolveSubschema';
+import getIdPropertyName from 'modules/resources/utils/getIdPropertyName';
+import resolveSchema from 'modules/resources/utils/resolveSchema';
+import resolveSubschema from 'modules/resources/utils/resolveSubschema';
 
-import pickFirstNonNullSchema from 'client-core/src/modules/resources/utils/pickFirstNonNullSchema';
-import getFirstNonNullSchemaType from 'client-core/src/modules/resources/utils/getFirstNonNullSchemaType';
-import isSchemaEmpty from 'client-core/src/modules/resources/utils/isSchemaEmpty';
+import pickFirstNonNullSchema from 'modules/resources/utils/pickFirstNonNullSchema';
+import getFirstNonNullSchemaType from 'modules/resources/utils/getFirstNonNullSchemaType';
+import isSchemaEmpty from 'modules/resources/utils/isSchemaEmpty';
 
 
-import type { JsonSchema } from 'client-core/src/modules/resources/types/JsonSchema';
-import type { Entity } from 'client-core/src/modules/entityStorage/types/Entity';
+import type { JsonSchema } from 'modules/resources/types/JsonSchema';
+import type { Entity } from 'modules/entityStorage/types/Entity';
 import type {
 	NormalizedEntityDictionary,
-} from 'client-core/src/modules/entityStorage/types/NormalizedEntityDictionary';
+} from 'modules/entityStorage/types/NormalizedEntityDictionary';
 
 function resolveEntityOrId(entityOrId, schema, entityDictionary) {
 	const idPropertyName = getIdPropertyName(schema);

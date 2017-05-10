@@ -1,6 +1,6 @@
 import { get as g, reduce } from 'lodash';
-import resolveSchema from 'client-core/src/modules/resources/utils/resolveSchema';
-import getDefinitionSchema from 'client-core/src/modules/resources/utils/getDefinitionSchema';
+import resolveSchema from 'modules/resources/utils/resolveSchema';
+import getDefinitionSchema from 'modules/resources/utils/getDefinitionSchema';
 
 export default ({ paths, definitions, link }) => {
 	let schema = reduce(paths, (schemaResult, pathSpec) => {

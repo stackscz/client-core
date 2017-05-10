@@ -5,13 +5,22 @@
   "repository": "https://gitlab.stacks.cz/brabeji/client-core.git",
   "author": "Jiri Brabec <brabeji@gmail.com>",
   "license": "MIT",
+  "scripts": {
+    "clean": "rimraf lib/",
+    "build": "npm run clean && node ./node_modules/babel-cli/bin/babel src/ --out-dir lib --copy-files",
+    "build:watch": "npm run clean && node ./node_modules/babel-cli/bin/babel src/ --out-dir lib --watch --copy-files"
+  },
   "dependencies": {
     "axios": "^0.16.0",
+    "classnames": "^2.2.5",
     "date-fns": "^1.28.2",
+    "dot-object": "^1.5.4",
     "fast-memoize": "^2.2.7",
     "invariant": "^2.2.2",
     "jsonschema": "^1.1.1",
     "lodash": "^4.17.4",
+    "mobile-detect": "^1.3.6",
+    "react-custom-scrollbars": "^4.1.1",
     "redux-batched-subscribe": "^0.1.6",
     "redux-saga": "^0.14.4",
     "reselect": "^3.0.0",
@@ -21,6 +30,18 @@
     "urijs": "^1.18.10"
   },
   "devDependencies": {
-    "cross-env": "^3.1.4"
+    "cross-env": "^3.1.4",
+    "babel-cli": "^6.24.1",
+    "babel-plugin-external-helpers": "^6.22.0",
+    "babel-plugin-lodash": "^3.2.11",
+    "babel-plugin-module-resolver": "^2.7.0",
+    "babel-plugin-syntax-flow": "^6.18.0",
+    "babel-plugin-tcomb": "^0.3.25",
+    "babel-plugin-transform-flow-strip-types": "^6.22.0",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-react": "^6.24.1",
+    "babel-preset-stage-0": "^6.24.1",
+    "rimraf": "^2.6.1"
   }
 }

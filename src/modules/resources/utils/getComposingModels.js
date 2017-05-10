@@ -1,6 +1,6 @@
 import { get as g, reduce } from 'lodash';
-import resolveSchema from 'client-core/src/modules/resources/utils/resolveSchema';
-import resolveSubschema from 'client-core/src/modules/resources/utils/resolveSubschema';
+import resolveSchema from 'modules/resources/utils/resolveSchema';
+import resolveSubschema from 'modules/resources/utils/resolveSubschema';
 
 export default function getComposingModels(inputSchema) {
 	if (!inputSchema) {

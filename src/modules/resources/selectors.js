@@ -1,16 +1,16 @@
 import { get as g, isFunction } from 'lodash';
 import invariant from 'invariant';
-import hash from 'client-core/src/utils/hash';
+import hash from 'utils/hash';
 import memoize from 'fast-memoize';
 import { createSelector } from 'reselect';
-import { entityDictionarySelector } from 'client-core/src/modules/entityStorage/selectors';
-import denormalizeResource from 'client-core/src/modules/resources/utils/denormalizeResource';
-import findRelationLinkName from 'client-core/src/modules/resources/utils/findRelationLinkName';
-import getIdPropertyName from 'client-core/src/modules/resources/utils/getIdPropertyName';
-import resolveSubschema from 'client-core/src/modules/resources/utils/resolveSubschema';
-import normalizeLink from 'client-core/src/modules/resources/utils/normalizeLink';
-import type { ResourceLink } from 'client-core/src/modules/resources/types/ResourceLink';
-import { INTERNAL_ID_PROPERTY_NAME } from 'client-core/src/modules/resources/constants';
+import { entityDictionarySelector } from 'modules/entityStorage/selectors';
+import denormalizeResource from 'modules/resources/utils/denormalizeResource';
+import findRelationLinkName from 'modules/resources/utils/findRelationLinkName';
+import getIdPropertyName from 'modules/resources/utils/getIdPropertyName';
+import resolveSubschema from 'modules/resources/utils/resolveSubschema';
+import normalizeLink from 'modules/resources/utils/normalizeLink';
+import type { ResourceLink } from 'modules/resources/types/ResourceLink';
+import { INTERNAL_ID_PROPERTY_NAME } from 'modules/resources/constants';
 import findResourceSchema from './utils/findResourceSchema';
 
 export const resourcesModuleStateSelector = (state) => g(state, 'resources');

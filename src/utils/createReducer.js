@@ -1,8 +1,8 @@
 import { get as g, isUndefined, isObject, merge, isArray, isFunction } from 'lodash';
-import typeInvariant from 'client-core/src/utils/typeInvariant';
+import typeInvariant from 'utils/typeInvariant';
 import invariant from 'invariant';
 import t from 'tcomb';
-import { INIT } from 'client-core/src/utils/actions';
+import { INIT } from 'utils/actions';
 
 /**
  * Creates reducer function in an unobtrusive way

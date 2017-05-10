@@ -27,7 +27,7 @@
  *
  * @type {object}
  */
-export const RECEIVE_ENTITIES = 'client-core/src/entityStorage/RECEIVE_ENTITIES';
+export const RECEIVE_ENTITIES = 'client-core/entityStorage/RECEIVE_ENTITIES';
 export function receiveEntities({ normalizedEntities, validAtTime }) {
 	return { type: RECEIVE_ENTITIES, payload: { normalizedEntities, validAtTime } };
 }
@@ -35,11 +35,11 @@ export function receiveEntities({ normalizedEntities, validAtTime }) {
 /**
  * Remove entity from storage
  */
-export const FORGET_ENTITY = 'client-core/src/entityStorage/FORGET_ENTITY';
+export const FORGET_ENTITY = 'client-core/entityStorage/FORGET_ENTITY';
 export function forgetEntity({ modelName, entityId }) {
 	return { type: FORGET_ENTITY, payload: { modelName, entityId } };
 }
-export const FORGET_ENTITIES = 'client-core/src/entityStorage/FORGET_ENTITIES';
+export const FORGET_ENTITIES = 'client-core/entityStorage/FORGET_ENTITIES';
 export function forgetEntities({ modelName, ids }) {
 	return { type: FORGET_ENTITIES, payload: { modelName, ids } };
 }
