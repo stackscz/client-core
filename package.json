@@ -8,6 +8,7 @@
   "dependencies": {
     "axios": "^0.16.0",
     "date-fns": "^1.28.2",
+    "dot-object": "^1.5.4",
     "fast-memoize": "^2.2.7",
     "invariant": "^2.2.2",
     "jsonschema": "^1.1.1",
