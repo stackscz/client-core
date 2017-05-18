@@ -84,13 +84,14 @@ export function *mergeResourceTask({ payload: { link, data: inputData, collectio
 	}
 
 
-	// determine resource self link
-	const selfLinkName = findRelationLinkName(
-		finalResourceSchema,
-		'self',
-	);
 	let selfLink = link;
+	let selfLinkName = g(link, 'name');
 	if (!selfLink) {
+		// determine resource self link
+		selfLinkName = findRelationLinkName(
+			finalResourceSchema,
+			'self',
+		);
 		selfLink = yield select(
 			normalizedLinkSelectorFactory(
 				{
