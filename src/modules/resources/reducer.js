@@ -150,10 +150,15 @@ export default createReducer(
 						);
 				}
 
-				newState = newState.setIn(
-					['resources', resourceId, 'fetching'],
-					true
-				);
+				newState = newState
+					.setIn(
+						['resources', resourceId, 'fetching'],
+						true
+					)
+					.setIn(
+						['resources', resourceId, 'error'],
+						undefined
+					);
 
 				return newState;
 			},
