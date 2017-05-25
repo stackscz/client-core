@@ -96,6 +96,7 @@ export default createReducer(
 			t.String,
 			Resource
 		),
+		mergeDataMutator: t.maybe(t.Function),
 	}),
 	Immutable.from({
 		paths: {},

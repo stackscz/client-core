@@ -1,4 +1,4 @@
-import { get as g, isUndefined } from 'lodash';
+import { get as g, isUndefined, identity } from 'lodash';
 import { call, select, put, takeEvery } from 'redux-saga/effects';
 import invariant from 'invariant';
 import hash from 'utils/hash';
@@ -31,6 +31,8 @@ import {
 
 import findRelationLinkName from 'modules/resources/utils/findRelationLinkName';
 import { INTERNAL_ID_PROPERTY_NAME } from 'modules/resources/constants';
+
+const mergeDataMutatorSelector = (state) => g(state, 'resources.mergeDataMutator', identity);
 
 // TODO rename `collectionLink` to `parentLink`
 export function *mergeResourceTask({ payload: { link, data: inputData, collectionLink } }) {
@@ -143,8 +145,9 @@ export function *mergeResourceTask({ payload: { link, data: inputData, collectio
 	const apiDescription = yield select(resourcesModuleStateSelector);
 
 	const ApiService = yield select(resourcesServiceSelector);
+	const mergeDataMutator = yield select(mergeDataMutatorSelector);
 
-	const dataToTransfer = stripReadOnlyProperties(data, finalResourceSchema);
+	const dataToTransfer = mergeDataMutator(collectionLink || selfLink, stripReadOnlyProperties(data, finalResourceSchema));
 
 	let callResult;
 	if (resource && !resource.transient) {
