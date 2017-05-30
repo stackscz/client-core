@@ -20,6 +20,7 @@
     "jsonschema": "^1.1.1",
     "lodash": "^4.17.4",
     "mobile-detect": "^1.3.6",
+    "normalizr": "https://github.com/brabeji/normalizr.git#ee110c6391bcf6c3f0245b932abdc28ec3003c4e",
     "react-custom-scrollbars": "^4.1.1",
     "redux-batched-subscribe": "^0.1.6",
     "redux-saga": "^0.14.4",
@@ -30,7 +31,6 @@
     "urijs": "^1.18.10"
   },
   "devDependencies": {
-    "cross-env": "^3.1.4",
     "babel-cli": "^6.24.1",
     "babel-plugin-external-helpers": "^6.22.0",
     "babel-plugin-lodash": "^3.2.11",
@@ -42,6 +42,7 @@
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-react": "^6.24.1",
     "babel-preset-stage-0": "^6.24.1",
+    "cross-env": "^3.1.4",
     "rimraf": "^2.6.1"
   }
 }

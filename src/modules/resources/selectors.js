@@ -4,7 +4,7 @@ import hash from 'utils/hash';
 import memoize from 'fast-memoize';
 import { createSelector } from 'reselect';
 import { entityDictionarySelector } from 'modules/entityStorage/selectors';
-import denormalizeResource from 'modules/resources/utils/denormalizeResource';
+import denormalizeResource2 from 'modules/resources/utils/denormalizeResource2';
 import findRelationLinkName from 'modules/resources/utils/findRelationLinkName';
 import getIdPropertyName from 'modules/resources/utils/getIdPropertyName';
 import resolveSubschema from 'modules/resources/utils/resolveSubschema';
@@ -44,6 +44,12 @@ export const resolvedLinkSelectorFactory = memoize(
 export const resourceSelectorFactory = memoize(
 	(link = {}) => (state) => {
 		return g(state, ['resources', 'resources', hash(link)]);
+	}
+);
+
+export const resourceDataSelectorFactory = memoize(
+	(link = {}) => (state) => {
+		return g(state, ['entityStorage', 'entities', hash(link)]);
 	}
 );
 
@@ -96,9 +102,6 @@ export const denormalizedResourceSelectorFactory = memoize(
 				if (!resource) {
 					return undefined;
 				}
-				if (!resource.content) {
-					return resource;
-				}
 				const resourceSchema = findResourceSchema(
 					{
 						paths,
@@ -107,35 +110,12 @@ export const denormalizedResourceSelectorFactory = memoize(
 					}
 				);
 
-
-				let finalResourceSchema = resourceSchema;
-				if (g(resourceSchema, 'type') === 'array') {
-					const itemSchema = resolveSubschema(resourceSchema, 'items');
-					const idPropertyName = getIdPropertyName(itemSchema);
-					if (!idPropertyName) {
-						finalResourceSchema = {
-							...finalResourceSchema,
-							items: {
-								...itemSchema,
-								'x-idPropertyName': INTERNAL_ID_PROPERTY_NAME,
-							},
-						};
-					}
-				} else {
-					const idPropertyName = getIdPropertyName(resourceSchema);
-					if (!idPropertyName) {
-						finalResourceSchema = {
-							...finalResourceSchema,
-							'x-idPropertyName': INTERNAL_ID_PROPERTY_NAME,
-						};
-					}
-				}
-
-				const content = denormalizeResource(
-					resource.content,
-					finalResourceSchema,
+				const content = denormalizeResource2(
+					resourceSchema,
+					paths,
 					entityDictionary,
 					maxLevel,
+					link,
 				);
 				return {
 					...resource,

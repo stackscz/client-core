@@ -4,10 +4,7 @@ import type { AppError } from 'types/AppError';
 
 export type Resource = {
 	link: ResourceLink,
-	links: {
-		[rel: string]: string,
-	},
-	content?: any,
+	fetched: boolean,
 	error?: AppError,
 	transient: boolean,
 	fetching: boolean,

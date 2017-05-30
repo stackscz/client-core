@@ -1,10 +1,7 @@
 import { get as g, isUndefined, identity } from 'lodash';
 import { call, select, put, takeEvery } from 'redux-saga/effects';
-import invariant from 'invariant';
-import hash from 'utils/hash';
 import resolveSubschema from 'modules/resources/utils/resolveSubschema';
-import normalizeResource from 'modules/resources/utils/normalizeResource';
-import getIdPropertyName from 'modules/resources/utils/getIdPropertyName';
+import normalizeResource2 from 'modules/resources/utils/normalizeResource2';
 import stripReadOnlyProperties from 'modules/resources/utils/stripReadOnlyProperties';
 import stripWriteOnlyProperties from 'modules/resources/utils/stripWriteOnlyProperties';
 import rethrowError from 'utils/rethrowError';
@@ -24,107 +21,43 @@ import {
 	receivePersistResourceFailure,
 } from '../actions';
 import {
-	normalizedLinkSelectorFactory,
 	resourceSchemaSelectorFactory,
 	resourceSelectorFactory,
 } from '../selectors';
 
-import findRelationLinkName from 'modules/resources/utils/findRelationLinkName';
-import { INTERNAL_ID_PROPERTY_NAME } from 'modules/resources/constants';
-
 const mergeDataMutatorSelector = (state) => g(state, 'resources.mergeDataMutator', identity);
 
-// TODO rename `collectionLink` to `parentLink`
-export function *mergeResourceTask({ payload: { link, data: inputData, collectionLink } }) {
-	// determine model name of resource
+export function *mergeResourceTask({ payload: { link, data: inputData, parentLink } }) {
+	const apiDescription = yield select(resourcesModuleStateSelector);
+
+	let resource = yield select(resourceSelectorFactory(link));
+	if(resource && (resource.fetching || resource.persisting || resource.deleting)) {
+		// resource busy
+		console.log('resource busy');
+		return;
+	}
+
 	const resourceSchema = link ? yield select(resourceSchemaSelectorFactory(link)) : undefined;
-	let collectionResourceSchema;
-	if (collectionLink) {
-		collectionResourceSchema = yield select(resourceSchemaSelectorFactory(collectionLink));
+	let parentResourceSchema;
+	if (parentLink) {
+		parentResourceSchema = yield select(resourceSchemaSelectorFactory(parentLink));
 	}
 
-	let finalResourceSchema = resourceSchema || resolveSubschema(collectionResourceSchema, 'items');
+	let finalResourceSchema = resourceSchema || resolveSubschema(parentResourceSchema, 'items');
 
-	// determine id property of model by name
-	let idPropertyName = getIdPropertyName(finalResourceSchema);
-	// let resourceHasOwnIdProperty = true;
-	if (!idPropertyName) {
-		idPropertyName = INTERNAL_ID_PROPERTY_NAME;
-		finalResourceSchema = {
-			...finalResourceSchema,
-			properties: {
-				...g(finalResourceSchema, 'properties', {}),
-				[INTERNAL_ID_PROPERTY_NAME]: {
-					type: 'string',
-				},
-			},
-			'x-idPropertyName': INTERNAL_ID_PROPERTY_NAME,
-		};
-		// resourceHasOwnIdProperty = false;
-	}
-
-	// patch data
-	const idValueFormLink = g(link, ['params', idPropertyName]);
-	const idValueFormData = g(inputData, idPropertyName);
-	invariant(
-		!(idValueFormLink && idValueFormData),
-		'mergeEntityFlow: do not set both `link` and entity id in merged data',
-	);
-	let data = inputData;
-	if (idValueFormLink) {
-		data = {
-			...data,
-			[idPropertyName]: idValueFormLink,
-		};
-	}
-	if (!g(data, idPropertyName)) {
-		const r = yield call(Math.random);
-		data = {
-			...data,
-			[idPropertyName]: hash({ data, r }),
-		};
-	}
-
-
-	let selfLink = link;
-	let selfLinkName = g(link, 'name');
-	if (!selfLink) {
-		// determine resource self link
-		selfLinkName = findRelationLinkName(
-			finalResourceSchema,
-			'self',
-		);
-		selfLink = yield select(
-			normalizedLinkSelectorFactory(
-				{
-					name: selfLinkName,
-					params: data,
-				}
-			)
-		);
-	}
-
-	invariant(selfLink, 'Could not compute self link for name `%s`', selfLinkName);
-
-	let resource = yield select(resourceSelectorFactory(selfLink));
-
-	//
-	// Normalize entity data.
-	//
-	const dataToReceive = stripWriteOnlyProperties(data, finalResourceSchema);
-	const {
-		result: resourceNormalizationResult,
-		entities: normalizedEntities,
-	} = normalizeResource(
-		dataToReceive,
+	const dataToReceive = stripWriteOnlyProperties(inputData, finalResourceSchema);
+	const entities = normalizeResource2(
 		finalResourceSchema,
+		apiDescription.paths,
+		link,
+		dataToReceive,
 	);
 
 	const validAtTime = yield call(now);
 	yield put(
 		receiveEntities(
 			{
-				normalizedEntities,
+				normalizedEntities: entities,
 				validAtTime: validAtTime.format(),
 			}
 		)
@@ -132,22 +65,19 @@ export function *mergeResourceTask({ payload: { link, data: inputData, collectio
 	yield put(
 		persistResource(
 			{
-				link: selfLink,
+				link,
 				transient: isUndefined(link) || g(resource, 'transient', false),
-				links: {},
-				content: resourceNormalizationResult,
-				collectionLink,
+				parentLink,
 			}
 		)
 	);
 
-	resource = yield select(resourceSelectorFactory(selfLink));
-	const apiDescription = yield select(resourcesModuleStateSelector);
+	resource = yield select(resourceSelectorFactory(link));
 
 	const ApiService = yield select(resourcesServiceSelector);
 	const mergeDataMutator = yield select(mergeDataMutatorSelector);
 
-	const dataToTransfer = mergeDataMutator(collectionLink || selfLink, stripReadOnlyProperties(data, finalResourceSchema));
+	const dataToTransfer = mergeDataMutator(parentLink || link, stripReadOnlyProperties(inputData, finalResourceSchema));
 
 	let callResult;
 	if (resource && !resource.transient) {
@@ -157,7 +87,7 @@ export function *mergeResourceTask({ payload: { link, data: inputData, collectio
 				ApiService.putResource,
 				{
 					apiDescription,
-					link: selfLink,
+					link,
 					data: dataToTransfer,
 				}
 			);
@@ -166,21 +96,21 @@ export function *mergeResourceTask({ payload: { link, data: inputData, collectio
 			yield put(
 				receivePersistResourceFailure(
 					{
-						link: selfLink,
+						link,
 						error,
 					}
 				)
 			);
 			return;
 		}
-	} else if (collectionLink) {
+	} else if (parentLink) {
 		// we have candidate collection resource to POST to
 		try {
 			callResult = yield call(
 				ApiService.postResource,
 				{
 					apiDescription,
-					link: collectionLink,
+					link: parentLink,
 					data: dataToTransfer,
 				}
 			);
@@ -189,7 +119,7 @@ export function *mergeResourceTask({ payload: { link, data: inputData, collectio
 			yield put(
 				receivePersistResourceFailure(
 					{
-						link: selfLink,
+						link,
 						error,
 					}
 				)
@@ -197,35 +127,20 @@ export function *mergeResourceTask({ payload: { link, data: inputData, collectio
 			return;
 		}
 	} else {
-		throw 'Could not determine how to merge entity'; // eslint-disable-line
+		throw new Error('Could not determine how to merge entity');
 	}
 
-	callResult = {
-		...selfLink.params,
-		...callResult,
-	};
-
-	const receivedSelfLink = yield select(
-		normalizedLinkSelectorFactory(
-			{
-				name: selfLinkName,
-				params: callResult,
-			}
-		)
-	);
-
-	const {
-		result: receivedResourceNormalizationResult,
-		entities: receivedNormalizedEntities,
-	} = normalizeResource(
-		callResult,
+	const receivedEntities = normalizeResource2(
 		finalResourceSchema,
+		apiDescription.paths,
+		link,
+		callResult,
 	);
 
 	yield put(
 		receiveEntities(
 			{
-				normalizedEntities: receivedNormalizedEntities,
+				normalizedEntities: receivedEntities,
 				validAtTime: validAtTime.format(),
 			}
 		)
@@ -233,11 +148,9 @@ export function *mergeResourceTask({ payload: { link, data: inputData, collectio
 	yield put(
 		receivePersistResourceSuccess(
 			{
-				link: receivedSelfLink,
-				content: receivedResourceNormalizationResult,
-				collectionLink,
-				transientLink: selfLink,
-				transientContent: resourceNormalizationResult,
+				link,
+				parentLink,
+				// transientLink: selfLink,
 			}
 		)
 	);

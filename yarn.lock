@@ -1579,6 +1579,10 @@ normalize-path@^2.0.1:
   dependencies:
     remove-trailing-separator "^1.0.1"
 
+"normalizr@https://github.com/brabeji/normalizr.git#ee110c6391bcf6c3f0245b932abdc28ec3003c4e":
+  version "3.2.3"
+  resolved "https://github.com/brabeji/normalizr.git#ee110c6391bcf6c3f0245b932abdc28ec3003c4e"
+
 npmlog@^4.0.2:
   version "4.1.0"
   resolved "https://registry.yarnpkg.com/npmlog/-/npmlog-4.1.0.tgz#dc59bee85f64f00ed424efb2af0783df25d1c0b5"

@@ -4,12 +4,12 @@ import { createSelector } from 'reselect';
 
 export const entityDictionarySelector =
 	(state) =>
-		g(state, ['entityStorage', 'collections']);
+		g(state, ['entityStorage', 'entities']);
 
 export const collectionSelectorFactory =
 	(modelName) =>
 		(state) =>
-			g(state, ['entityStorage', 'collections', modelName]);
+			g(state, ['entityStorage', 'entities', modelName]);
 
 export const collectionContentSelectorFactory = memoize(
 	(modelName) =>
@@ -22,7 +22,7 @@ export const collectionContentSelectorFactory = memoize(
 export const entitySelectorFactory =
 	(modelName, entityId) =>
 		(state) =>
-			g(state, ['entityStorage', 'collections', modelName, entityId]);
+			g(state, ['entityStorage', 'entities', modelName, entityId]);
 
 export const entityListSelectorFactory = memoize(
 	(modelName, ids) => createSelector(

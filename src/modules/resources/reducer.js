@@ -29,8 +29,7 @@ import {
 
 const defaultResource = Immutable.from({
 	link: undefined,
-	links: {},
-	content: undefined,
+	fetched: false,
 	transient: false,
 	fetching: false,
 	persisting: false,
@@ -58,8 +57,8 @@ const removeResourceHandlerSpec = [
 		if (resource) {
 			const idToRemove = g(resource, 'content');
 			if (!isArray(idToRemove)) {
-				each(collectionsLinks, (collectionLink) => {
-					const collectionResourceId = hash(collectionLink);
+				each(collectionsLinks, (parentLink) => {
+					const collectionResourceId = hash(parentLink);
 					const collectionResource = g(newState, ['resources', collectionResourceId]);
 					if (collectionResource) {
 						const collectionResourceContent = g(collectionResource, 'content');
@@ -192,10 +191,9 @@ export default createReducer(
 			t.struct({
 				link: ResourceLink,
 				transientLink: t.maybe(ResourceLink),
-				content: t.Any,
 			}),
 			(state, action) => {
-				const { link, content, transientLink } = action.payload;
+				const { link, transientLink } = action.payload;
 				const resourceId = hash(link);
 				let newState = state;
 				if (transientLink) {
@@ -212,8 +210,8 @@ export default createReducer(
 						return baseResource.merge(
 							{
 								link,
-								content,
 								error: undefined,
+								fetched: true,
 								fetching: false,
 							},
 							{ deep: true }
@@ -226,7 +224,7 @@ export default createReducer(
 		[MERGE_RESOURCE]: [
 			t.struct({
 				link: t.maybe(ResourceLink),
-				collectionLink: t.maybe(ResourceLink),
+				parentLink: t.maybe(ResourceLink),
 				data: t.Any,
 			}),
 			// just typecheck action
@@ -235,13 +233,8 @@ export default createReducer(
 			t.struct({
 				link: ResourceLink,
 				transientLink: t.maybe(ResourceLink),
-				links: t.dict(
-					t.String,
-					t.String,
-				),
-				content: t.Any,
 			}),
-			(state, { payload: { link, links, content, transient, collectionLink } }) => {
+			(state, { payload: { link, transient, parentLink } }) => {
 				const resourceId = hash(link);
 				let newState = state;
 				newState = newState.updateIn(
@@ -254,8 +247,6 @@ export default createReducer(
 						return baseResource.merge(
 							{
 								link,
-								content,
-								links,
 								error: undefined,
 								transient,
 								persisting: true,
@@ -265,8 +256,8 @@ export default createReducer(
 				);
 
 				// update parent collection
-				if (collectionLink) {
-					const collectionResourceId = hash(collectionLink);
+				if (parentLink) {
+					const collectionResourceId = hash(parentLink);
 					const collectionResource = g(newState, ['resources', collectionResourceId]);
 					if (!collectionResource) {
 						newState = newState.setIn(
@@ -275,7 +266,7 @@ export default createReducer(
 								state,
 								collectionResourceId,
 								{
-									link: collectionLink,
+									link: parentLink,
 									content: [],
 								}
 							),
@@ -303,11 +294,11 @@ export default createReducer(
 			t.struct({
 				link: ResourceLink,
 				content: t.Any,
-				collectionLink: t.maybe(ResourceLink),
+				parentLink: t.maybe(ResourceLink),
 				transientLink: t.maybe(ResourceLink),
 				transientContent: t.Any,
 			}),
-			(state, { payload: { link, transientLink, transientContent, content, collectionLink } }) => {
+			(state, { payload: { link, transientLink, transientContent, content, parentLink } }) => {
 				let newState = state;
 				const resourceId = hash(link);
 				newState = newState.setIn(['resources', resourceId], resourceDefaults(
@@ -332,8 +323,8 @@ export default createReducer(
 					}
 				}
 
-				if (collectionLink) {
-					const collectionResourceId = hash(collectionLink);
+				if (parentLink) {
+					const collectionResourceId = hash(parentLink);
 					const collectionResource = g(newState, ['resources', collectionResourceId]);
 					if (collectionResource) {
 						newState = newState.updateIn(

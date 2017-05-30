@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 import React from 'react';
 import { get as g, upperFirst, omit } from 'lodash';
 import { compose, pure, withHandlers, withProps, branch, mapProps } from 'recompose';
+import memoize from 'fast-memoize';
 import lifecycle from 'utils/lifecycle';
 import {
 	ensureResource,
@@ -19,33 +20,33 @@ import {
 import hash from 'utils/hash';
 
 const emptyResource = {};
+const linkSelector = (props, linkPropName) => g(props, linkPropName);
 
 export default ({
-		link: linkFactory,
-		linkPropName = 'resourceLink',
-		outputPropsPrefix = '',
-		autoload = false,
-	}) => {
+	link: linkFactory,
+	linkPropName = 'resourceLink',
+	outputPropsPrefix = '',
+	autoload = false,
+}) => {
 	const resourceLinkKey = outputPropsPrefix ? `${outputPropsPrefix}ResourceLink` : 'resourceLink';
 	const resourceKey = outputPropsPrefix ? `${outputPropsPrefix}Resource` : 'resource';
 	const resourceContentKey = outputPropsPrefix ? `${outputPropsPrefix}ResourceContent` : 'resourceContent';
 	const handleEnsureResourceKey = `handleEnsure${upperFirst(outputPropsPrefix)}Resource`;
 	const handleFetchResourceKey = `handleFetch${upperFirst(outputPropsPrefix)}Resource`;
 
+	const memoizedLinkFactory = !!linkFactory ? memoize(linkFactory) : (props) => g(props, linkPropName);
+
 	return compose(
 		pure,
-		branch(
-			() => !!linkFactory,
-			withProps(
-				(props) => ({ link: linkFactory(props) })
-			),
-			withProps(
-				(props) => ({ link: g(props, linkPropName) })
-			),
+		withProps(
+			(props) => {
+				return { link: memoizedLinkFactory(props) }
+			},
 		),
 		connect(
 			(state, ownerProps) => {
 				const { link: resourceLink } = ownerProps;
+				// TODO dynamic denormalization schema instead of 5 levels deep
 				const denormalizedResource = denormalizedResourceSelectorFactory(resourceLink, 5)(state);
 				return {
 					[resourceLinkKey]: resourceLink,
@@ -77,9 +78,9 @@ export default ({
 					);
 				},
 				[`handleDelete${upperFirst(outputPropsPrefix)}Resource`]: ({
-						dispatch,
-						[resourceLinkKey]: resourceLink,
-					}) =>
+					dispatch,
+					[resourceLinkKey]: resourceLink,
+				}) =>
 					({ collectionsLinks, link: customLink } = {}) => {
 						dispatch(
 							deleteResource(
@@ -91,16 +92,16 @@ export default ({
 						);
 					},
 				[`handleMerge${upperFirst(outputPropsPrefix)}Resource`]: ({
-						dispatch,
-						[resourceLinkKey]: resourceLink
-					} = {}) =>
-					({ link, data, collectionLink } = {}) => {
-						dispatch(mergeResource({ link: link || resourceLink, data, collectionLink }));
+					dispatch,
+					[resourceLinkKey]: resourceLink
+				} = {}) =>
+					({ link, data, parentLink } = {}) => {
+						dispatch(mergeResource({ link: link || resourceLink, data, parentLink }));
 					},
 				[`handleForget${upperFirst(outputPropsPrefix)}Resource`]: ({
-						dispatch,
-						[resourceLinkKey]: resourceLink
-					}) =>
+					dispatch,
+					[resourceLinkKey]: resourceLink
+				}) =>
 					({ link, collectionsLinks } = {}) => {
 						dispatch(forgetResource({ link: link || resourceLink, collectionsLinks }));
 					},
