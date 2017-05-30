@@ -18,66 +18,24 @@ import {
 	FORGET_ENTITIES,
 } from './actions';
 
-export function setEntitiesToState(state, normalizedEntities, normalizedAssociationsUpdates) {
-	let newState = state;
-	newState = newState.update('collections', (currentValue, collections) => {
-		let newValue = currentValue;
-		each(collections, (entities, modelName) => {
-			each(entities, (entity, entityId) => {
-				// Merge entity with existing one.
-				const existingEntity = g(newValue, [modelName, entityId], Immutable.from({}));
-				newValue = newValue.setIn(
-					[modelName, entityId],
-					existingEntity.merge(entity)
-				);
-			});
-		});
-		return newValue;
-	}, normalizedEntities);
-
-	each(normalizedAssociationsUpdates, (modelAssociationUpdate, modelName) => {
-		each(modelAssociationUpdate, (entityAssociationUpdate, entityId) => {
-			each(entityAssociationUpdate, (entityPropertyAssociationUpdate, associationPropertyName) => {
-				if (g(newState, ['collections', modelName, entityId])) {
-					const propertyPath = ['collections', modelName, entityId, associationPropertyName];
-					const currentAssocValue = g(newState, propertyPath);
-					if (Array.isArray(currentAssocValue)) {
-						newState = newState.setIn(
-							propertyPath,
-							union(
-								currentAssocValue,
-								Array.isArray(entityPropertyAssociationUpdate) ? (
-									entityPropertyAssociationUpdate
-								) : (
-									[entityPropertyAssociationUpdate]
-								)
-							)
-						);
-					} else {
-						newState = newState.setIn(propertyPath, entityPropertyAssociationUpdate);
-					}
-				}
-			});
-		});
-	});
-	return newState;
-}
-
 export default createReducer(
 	t.struct({
-		collections: NormalizedEntityDictionary,
+		entities: t.dict(t.String, t.Any),
 	}),
 	Immutable.from({
-		collections: {},
+		entities: {},
 	}),
 	{
 		[RECEIVE_ENTITIES]: [
 			t.struct({
-				normalizedEntities: NormalizedEntityDictionary,
+				normalizedEntities: t.dict(t.String, t.Any),
 			}),
 			(state, action) => {
 				const { normalizedEntities } = action.payload;
-				return setEntitiesToState(state, normalizedEntities);
+				return state.set(
+					'entities',
+					state.entities.merge(normalizedEntities, { deep: true })
+				);
 			},
 		],
 		[FORGET_ENTITY]: [
@@ -88,7 +46,7 @@ export default createReducer(
 			(state, action) => {
 				const { modelName, entityId } = action.payload;
 				let newState = state;
-				each(['collections', 'statuses', 'errors'], (sliceName) => {
+				each(['entities', 'statuses', 'errors'], (sliceName) => {
 					if (g(newState, [sliceName, modelName])) {
 						newState = newState.updateIn(
 							[sliceName, modelName],
@@ -127,7 +85,7 @@ export default createReducer(
 				const { modelName, ids } = action.payload;
 
 				let newState = state;
-				each(['collections', 'statuses', 'errors'], (sliceName) => {
+				each(['entities', 'statuses', 'errors'], (sliceName) => {
 					if (g(newState, [sliceName, modelName])) {
 						newState = newState.updateIn(
 							[sliceName, modelName],

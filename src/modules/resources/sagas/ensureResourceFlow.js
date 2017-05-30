@@ -7,6 +7,7 @@ import {
 
 import {
 	resourceSelectorFactory,
+	resourceDataSelectorFactory,
 } from '../selectors';
 
 export function* ensureResourceTask(action) {
@@ -15,7 +16,8 @@ export function* ensureResourceTask(action) {
 	// TODO implement invalidation ;)
 	console.log('ENSURING RESOURCE', link);
 	const resource = yield select(resourceSelectorFactory(link));
-	if (!resource || (!resource.content && !resource.fetching)) {
+	const resourceData = yield select(resourceDataSelectorFactory(link));
+	if (!resource.fetched || (!resourceData && !resource.error && !resource.fetching)) {
 		console.log('FETCHING RESOURCE', link, resource);
 		yield put(fetchResource({ link, relations }));
 	}

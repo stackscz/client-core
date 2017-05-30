@@ -1,13 +1,13 @@
 import { get as g } from 'lodash';
 import { call, select, put, takeEvery } from 'redux-saga/effects';
 import hash from 'utils/hash';
-import normalizeResource from 'modules/resources/utils/normalizeResource';
+import normalizeResource2 from 'modules/resources/utils/normalizeResource2';
+import denormalizeResource2 from 'modules/resources/utils/denormalizeResource2';
 
 import { receiveEntities } from 'modules/entityStorage/actions';
 import { now } from 'utils/sideEffects';
 
 import { resourcesServiceSelector, resourcesModuleStateSelector } from 'modules/resources/selectors';
-import findResourceLinksNames from 'modules/resources/utils/findResourceLinksNames';
 import findRelationLinkName from 'modules/resources/utils/findRelationLinkName';
 import rethrowError from 'utils/rethrowError';
 
@@ -22,7 +22,7 @@ import {
 	resourceSchemaSelectorFactory,
 } from '../selectors';
 
-export function *fetchResourceTask(action) {
+export function* fetchResourceTask(action) {
 	const { link, relations } = action.payload;
 
 	const apiDescription = yield select(resourcesModuleStateSelector);
@@ -44,11 +44,9 @@ export function *fetchResourceTask(action) {
 							name: relationLinkName,
 							params: g(link, 'params', {}),
 						},
-						relations: relationSpec.length ?
-							[
-								relationSpec.join('.'),
-							] :
-							undefined,
+						relations: relationSpec.length ? [
+							relationSpec.join('.'),
+						] : undefined,
 					}
 				)
 			);
@@ -77,33 +75,35 @@ export function *fetchResourceTask(action) {
 		return;
 	}
 
-
-	const linksRels = findResourceLinksNames(resourceSchema);
-	const links = {};
-	const linksRelsEntries = Object.entries(linksRels);
-	for (let linkIndex = 0; linkIndex < linksRelsEntries.length; linkIndex++) {
-		const [relName, linkName] = linksRelsEntries[linkIndex];
-		if (!requestedLinks[relName]) {
-			continue;
-		}
-		const { name, params } = yield select(
-			resolvedLinkSelectorFactory(
-				{
-					name: linkName,
-					params: resource,
-				}
-			)
-		);
-		links[relName] = hash({ name, params });
-	}
-
-	const {
-		result,
-		entities,
-	} = normalizeResource(
-		resource,
+	const entities = normalizeResource2(
 		resourceSchema,
+		apiDescription.paths,
+		link,
+		resource,
 	);
+
+	// debugger;
+	// const denormalizationResult = denormalizeResource2(
+	// 	resourceSchema,
+	// 	apiDescription.paths,
+	// 	entities,
+	// 	1,
+	// 	link,
+	// );
+	// console.warn(
+	// 	result,
+	// 	entities,
+	// 	denormalizationResult,
+	// );
+	// debugger;
+
+	// const {
+	// 	result,
+	// 	entities,
+	// } = normalizeResource(
+	// 	resource,
+	// 	resourceSchema,
+	// );
 
 	const time = yield call(now);
 	const validAtTime = time.format();
@@ -116,17 +116,9 @@ export function *fetchResourceTask(action) {
 			}
 		)
 	);
-	yield put(
-		receiveResource(
-			{
-				link,
-				links,
-				content: result,
-			}
-		)
-	);
+	yield put(receiveResource({ link }));
 }
 
-export default function *fetchResourceFlow() {
+export default function* fetchResourceFlow() {
 	yield takeEvery(FETCH_RESOURCE, fetchResourceTask);
 }

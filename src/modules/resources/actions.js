@@ -19,25 +19,25 @@ export function receiveFetchResourceFailure({ link, error }) {
 }
 
 export const RECEIVE_RESOURCE = 'client-core/resources/RECEIVE_RESOURCE';
-export function receiveResource({ link, links, content }) {
-	return { type: RECEIVE_RESOURCE, payload: { link, links, content } };
+export function receiveResource({ link, transientLink }) {
+	return { type: RECEIVE_RESOURCE, payload: { link, transientLink } };
 }
 
 export const MERGE_RESOURCE = 'client-core/resources/MERGE_RESOURCE';
-export function mergeResource({ link, data, collectionLink }) {
-	return { type: MERGE_RESOURCE, payload: { link, data, collectionLink } };
+export function mergeResource({ link, data, parentLink }) {
+	return { type: MERGE_RESOURCE, payload: { link, data, parentLink } };
 }
 
 export const PERSIST_RESOURCE = 'client-core/resources/PERSIST_RESOURCE';
-export function persistResource({ link, transient, links, content, collectionLink }) {
-	return { type: PERSIST_RESOURCE, payload: { link, transient, links, content, collectionLink } };
+export function persistResource({ link, transient, parentLink }) {
+	return { type: PERSIST_RESOURCE, payload: { link, transient, parentLink } };
 }
 
 export const RECEIVE_PERSIST_RESOURCE_SUCCESS = 'client-core/resources/RECEIVE_PERSIST_RESOURCE_SUCCESS';
-export function receivePersistResourceSuccess({ link, content, collectionLink, transientLink, transientContent }) {
+export function receivePersistResourceSuccess({ link, content, parentLink, transientLink, transientContent }) {
 	return {
 		type: RECEIVE_PERSIST_RESOURCE_SUCCESS,
-		payload: { link, content, collectionLink, transientLink, transientContent },
+		payload: { link, content, parentLink, transientLink, transientContent },
 	};
 }
 
