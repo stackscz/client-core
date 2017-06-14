@@ -23,7 +23,7 @@ const emptyResource = {};
 const linkSelector = (props, linkPropName) => g(props, linkPropName);
 
 export default ({
-	link: linkFactory,
+	link,
 	linkPropName = 'resourceLink',
 	outputPropsPrefix = '',
 	autoload = false,
@@ -34,13 +34,14 @@ export default ({
 	const handleEnsureResourceKey = `handleEnsure${upperFirst(outputPropsPrefix)}Resource`;
 	const handleFetchResourceKey = `handleFetch${upperFirst(outputPropsPrefix)}Resource`;
 
-	const memoizedLinkFactory = !!linkFactory ? memoize(linkFactory) : (props) => g(props, linkPropName);
+	const linkFactory = !!link ? link : (props) => g(props, linkPropName);
+	// const memoizedLinkFactory = memoize(linkFactory);
 
 	return compose(
 		pure,
 		withProps(
 			(props) => {
-				return { link: memoizedLinkFactory(props) }
+				return { link: linkFactory(props) }
 			},
 		),
 		connect(
@@ -112,7 +113,6 @@ export default ({
 				autoload ? (
 					{
 						componentWillMount({ [handleEnsureResourceKey]: handleEnsureResource }) {
-							console.log('withResourceMounted');
 							handleEnsureResource();
 						},
 						componentWillReceiveProps({ [resourceLinkKey]: oldResourceLink },

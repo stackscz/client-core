@@ -6,10 +6,16 @@ const extractParams = (string) => {
 		string.split('&'),
 		(buffer, value) => {
 			const parts = value.split('=');
-			return {
-				...buffer,
-				[parts[0]]: parts[1],
-			};
+			try {
+				return {
+					...buffer,
+					// Coalesce parameter without value to `true`
+					[parts[0]]: parts[1] === undefined || decodeURIComponent(parts[1]),
+				};
+			} catch (e) {
+				console.warn(`Malformed query param encoding for key ${parts[0]}`);
+				return buffer;
+			}
 		},
 		{},
 	);

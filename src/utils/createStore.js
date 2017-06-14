@@ -23,7 +23,7 @@ function runSaga(sagaMiddleware: Function, saga: Function): void {
 export default function createStore(config: StoreConfig = {}, initialState = {}): Object {
 	let reducers = config && config.reducers ? { ...config.reducers } : {};
 	let sagas = config && config.sagas ? [...config.sagas] : [];
-	const enhancers = config && config.enhancers ? [...config.enhancers] : [];
+	let enhancers = config && config.enhancers ? [...config.enhancers] : [];
 
 	if (config && isArray(config.modules)) {
 		each(config.modules, (module) => {
@@ -32,6 +32,9 @@ export default function createStore(config: StoreConfig = {}, initialState = {})
 			}
 			if (module.sagas) {
 				sagas = [...sagas, ...module.sagas];
+			}
+			if (module.enhancers) {
+				enhancers = [...enhancers, ...module.enhancers];
 			}
 		});
 	}
@@ -44,7 +47,7 @@ export default function createStore(config: StoreConfig = {}, initialState = {})
 	enhancers.unshift(applyMiddleware(...middleware));
 
 	// avoid dependency on react-dom on server
-	if (process.env.UNIVERSAL_ENV !== 'server') {
+	if ((0, window)) {
 		const batchedSubscribe = require('redux-batched-subscribe').batchedSubscribe;
 		const batchedUpdates = require('react-dom').unstable_batchedUpdates;
 		if (batchedUpdates) {

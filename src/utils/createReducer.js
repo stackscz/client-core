@@ -37,7 +37,11 @@ export default function createReducer(...params) {
 		let resultState = state;
 		if (action.type === INIT) {
 			if (initialState.asMutable) {
-				resultState = initialState.merge(state, { deep: true });
+				if (initialState.merge) {
+					resultState = initialState.merge(state, { deep: true });
+				} else if (initialState.concat) {
+					resultState = initialState.concat(state);
+				}
 			} else {
 				resultState = merge({}, initialState, state);
 			}

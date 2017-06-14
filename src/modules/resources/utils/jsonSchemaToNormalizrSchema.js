@@ -113,7 +113,6 @@ const visitSchema = (schema, resources, resourceLinkName, schemasBag) => {
 				// 	return schemasBag[resourceLinkName];
 				// }
 				const arrayItemSchema = resolveJsonPointer(schema, g(schema, 'items', {}));
-				console.log('ARRAY resource', resourceLinkName);
 				let resultingSchema = new NS.Array(visitSchema(arrayItemSchema, resources, undefined, schemasBag));
 				if (resourceLinkName) {
 					resultingSchema = new NormalizrResourceSchema(resourceLinkName, resultingSchema, g(resources, resourceLinkName));
