@@ -15,7 +15,7 @@ const resolveJsonPointer = (parentSchema, schema) => {
 	return {
 		...g(parentSchema, refParts),
 		definitions: g(parentSchema, 'definitions', {}),
-	}
+	};
 };
 
 const defineObjectSchemaProperties = function (schema, definitions, entitySchema, properties, resources, resourceLinkName, schemasBag) {
@@ -112,8 +112,15 @@ const visitSchema = (schema, resources, resourceLinkName, schemasBag) => {
 				// if(resourceLinkName && schemasBag[resourceLinkName]) {
 				// 	return schemasBag[resourceLinkName];
 				// }
-				const arrayItemSchema = resolveJsonPointer(schema, g(schema, 'items', {}));
-				let resultingSchema = new NS.Array(visitSchema(arrayItemSchema, resources, undefined, schemasBag));
+				const arrayItemJSONSchema = resolveJsonPointer(schema, g(schema, 'items'));
+				if (!arrayItemJSONSchema) {
+					return undefined;
+				}
+				const arrayItemSchema = visitSchema(arrayItemJSONSchema, resources, undefined, schemasBag);
+				if (!arrayItemSchema) {
+					return undefined;
+				}
+				let resultingSchema = new NS.Array(arrayItemSchema);
 				if (resourceLinkName) {
 					resultingSchema = new NormalizrResourceSchema(resourceLinkName, resultingSchema, g(resources, resourceLinkName));
 					// schemasBag[resourceLinkName] = resultingSchema
@@ -178,6 +185,11 @@ const visitSchema = (schema, resources, resourceLinkName, schemasBag) => {
 				} else {
 					const objectSchema = new NS.Object({});
 					defineObjectSchemaProperties(schema, definitions, objectSchema, properties, resources, undefined, schemasBag);
+					if (resourceLinkName && resourceLinkName !== modelName) {
+						// debugger;
+						const objectResourceSchema = new NormalizrResourceSchema(resourceLinkName, objectSchema, g(resources, resourceLinkName));
+						return objectResourceSchema;
+					}
 					return objectSchema;
 				}
 				break;
@@ -189,7 +201,7 @@ const visitSchema = (schema, resources, resourceLinkName, schemasBag) => {
 
 export default memoize(
 	(jsonSchema, paths, link) => {
-		console.warn('CONVERTING SCHEMA', jsonSchema);
+		console.warn('CONVERTING SCHEMA', jsonSchema, paths, link);
 		const schemasBag = {};
 		const resources = pathsToResources(paths);
 		return visitSchema(jsonSchema, resources, link && link.name, schemasBag);
