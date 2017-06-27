@@ -1,9 +1,9 @@
-import df from 'date-fns';
+import { format } from 'date-fns';
 
 const now = () => {
 	return {
 		format: () => {
-			return df.format(new Date());
+			return format(new Date());
 		},
 	};
 };
