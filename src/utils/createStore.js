@@ -23,7 +23,7 @@ function runSaga(sagaMiddleware: Function, saga: Function): void {
 export default function createStore(config: StoreConfig = {}, initialState = {}): Object {
 	let reducers = config && config.reducers ? { ...config.reducers } : {};
 	let sagas = config && config.sagas ? [...config.sagas] : [];
-	let enhancers = config && config.enhancers ? [...config.enhancers] : [];
+	let enhancers = [];
 
 	if (config && isArray(config.modules)) {
 		each(config.modules, (module) => {
@@ -38,6 +38,8 @@ export default function createStore(config: StoreConfig = {}, initialState = {})
 			}
 		});
 	}
+	let configEnhancers = config && config.enhancers ? [...config.enhancers] : [];
+	enhancers = [...enhancers, ...configEnhancers];
 
 	const sagaMiddleware = createSagaMiddleware();
 	const middleware = [
