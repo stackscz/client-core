@@ -17,7 +17,7 @@ export function* ensureResourceTask(action) {
 	console.log('ENSURING RESOURCE', link);
 	const resource = yield select(resourceSelectorFactory(link));
 	const resourceData = yield select(resourceDataSelectorFactory(link));
-	if (!resource.fetched || (!resourceData && !resource.error && !resource.fetching)) {
+	if (!resource.fetched && (!resourceData && !resource.error && !resource.fetching)) {
 		console.log('FETCHING RESOURCE', link, resource);
 		yield put(fetchResource({ link, relations }));
 	}
