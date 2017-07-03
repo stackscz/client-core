@@ -1,245 +1,179 @@
 import type { ResourceLink } from 'modules/resources/types/ResourceLink';
-import { get as g } from 'lodash';
+import { get as g, isFunction } from 'lodash';
 import axios from 'axios';
-import resolveSubschema from 'modules/resources/utils/resolveSubschema';
 import resolveResourceLink from 'modules/resources/utils/resolveResourceLink';
-import validateResource from 'modules/resources/utils/validateResource';
 
-let createWrappedPromise = (cb) => new Promise(
-	(resolve, reject) => {
-		try {
-			cb(resolve, reject);
-		} catch (error) {
-			reject(error);
-		}
+const mockApiCall = (apiDescription,
+	{
+		method,
+		data,
+		linkName,
+		linkParams,
+		resourceSchema,
+		definitions,
+	} = {},) => {
+	const mockResources = g(apiDescription, 'mockResources');
+	if (!mockResources) {
+		return undefined;
 	}
-);
-if (process.env.DELAY_RESOURCE_SERVICE_RESPONSE) {
-	createWrappedPromise = (cb) => new Promise((resolve, reject) => setTimeout(() => {
-		try {
-			cb(resolve, reject);
-		} catch (error) {
-			reject(error);
-		}
-	}, 1000));
-}
+	const mockResource = g(mockResources, linkName);
+	if (!isFunction(mockResource)) {
+		return undefined;
+	}
+	return Promise.resolve(
+		mockResource(
+			{
+				method,
+				data,
+				linkName,
+				linkParams,
+				resourceSchema,
+				definitions,
+			}
+		)
+	);
+};
+
+const errorResponseHandlerFactory = (messageFactory) => (error) => {
+	const errorCode = g(error, 'response.status', 5000);
+	const responseData = g(error, 'response.data');
+	throw {
+		code: errorCode,
+		data: responseData,
+		message: messageFactory ? messageFactory({ errorCode, responseData }) : 'Request Failed',
+	}
+};
 
 const service = {
-	getResource: ({ link, apiDescription }) => createWrappedPromise((resolve, reject) => {
+	getResource: ({ link, apiDescription }) => {
 		const resolvedLink = resolveResourceLink(apiDescription, link);
 		const { name, params, path, queryParams, resourceSchema } = resolvedLink;
 
-		if (process.env.NODE_ENV !== 'production') {
-			const getMockResource = g(apiDescription, 'getMockResource', () => {
-			});
-			const mockResource = getMockResource(
-				{
-					method: 'GET',
-					linkName: name,
-					linkParams: params,
-					params,
-					resourceSchema,
-					definitions: g(apiDescription, 'definitions'),
-				}
-			);
-
-			if (mockResource) {
-				try {
-					validateResource(mockResource, resourceSchema);
-					resolve(mockResource);
-				} catch (error) {
-					reject(error);
-				}
-				return;
+		let apiCall = mockApiCall(
+			apiDescription,
+			{
+				method: 'GET',
+				linkName: name,
+				linkParams: params,
+				params,
+				resourceSchema,
+				definitions: g(apiDescription, 'definitions'),
 			}
+		);
+		if (!apiCall) {
+			apiCall = axios.get(path, { params: queryParams });
 		}
 
-		axios.get(
-			path,
-			{
-				params: queryParams,
-			}
-		).then(
-			(response) => {
-				const responseData = g(response, 'data');
-				try {
-					validateResource(responseData, resourceSchema);
-				} catch (error) {
-					reject(error);
-				}
-				resolve(responseData);
-			}
-		).catch((errorResponse) => {
-			const response = errorResponse.response;
-			reject({
-				code: response.status || 5000,
-				data: response.data || {},
-				message: `${response.status}: Get resource failed`,
-			});
-		});
-	}),
-	postResource: ({ link, data, apiDescription }) => createWrappedPromise((resolve, reject) => {
+		return apiCall
+			.then(
+				(response) => g(response, 'data'),
+			)
+			.catch(
+				errorResponseHandlerFactory(
+					({ errorCode }) => `${errorCode}: GET resource failed`
+				)
+			);
+	},
+	postResource: ({ link, data, apiDescription }) => {
 		const resolvedLink = resolveResourceLink(apiDescription, link);
-
 		const { name, params, queryParams, path, resourceSchema } = resolvedLink;
 
-		const finalResourceSchema = resourceSchema.items ? resolveSubschema(resourceSchema, 'items') : resourceSchema;
-
-		if (process.env.NODE_ENV !== 'production') {
-			const getMockResource = g(apiDescription, 'getMockResource', () => {
-			});
-			let mockResource;
-			try {
-				mockResource = getMockResource(
-					{
-						method: 'POST',
-						data,
-						linkName: name,
-						linkParams: params,
-						resourceSchema,
-						definitions: g(apiDescription, 'definitions'),
-					}
-				);
-			} catch (error) {
-				reject(error);
-				return;
-			}
-
-			if (mockResource) {
-				try {
-					validateResource(mockResource, finalResourceSchema);
-					resolve(mockResource);
-				} catch (error) {
-					reject(error);
-				}
-				return;
-			}
-		}
-
-		axios.post(
-			path,
-			data,
+		let apiCall = mockApiCall(
+			apiDescription,
 			{
-				params: queryParams,
+				method: 'POST',
+				data,
+				linkName: name,
+				linkParams: params,
+				params,
+				resourceSchema,
+				definitions: g(apiDescription, 'definitions'),
 			}
-		).then(
-			(response) => {
-				const responseData = g(response, 'data');
-				try {
-					validateResource(responseData, finalResourceSchema);
-				} catch (error) {
-					reject(error);
-				}
-				resolve(responseData);
-			}
-		).catch((errorResponse) => {
-			const response = errorResponse.response;
-			reject({
-				code: response.status || 5000,
-				data: response.data || {},
-				message: `${response.status}: Post resource failed`,
-			});
-		});
-	}),
-	putResource: ({ link, data, apiDescription }) => createWrappedPromise((resolve, reject) => {
-		const resolvedLink = resolveResourceLink(apiDescription, link);
-
-		const { name, params, queryParams, path, resourceSchema } = resolvedLink;
-
-		if (process.env.NODE_ENV !== 'production') {
-			const getMockResource = g(apiDescription, 'getMockResource', () => {
-			});
-			const mockResource = getMockResource(
+		);
+		if (!apiCall) {
+			apiCall = axios.post(
+				path,
+				data,
 				{
-					method: 'PUT',
-					data,
-					linkName: name,
-					linkParams: params,
-					resourceSchema,
-					definitions: g(apiDescription, 'definitions'),
+					params: queryParams,
 				}
 			);
-
-			if (mockResource) {
-				try {
-					validateResource(mockResource, resourceSchema);
-					resolve(mockResource);
-				} catch (error) {
-					reject(error);
-				}
-				return;
-			}
 		}
 
-		axios.put(
-			path,
-			data,
-			{
-				params: queryParams,
-			}
-		).then((response) => {
-			const responseData = g(response, 'data');
-			try {
-				validateResource(responseData, resourceSchema);
-			} catch (error) {
-				reject(error);
-			}
-			resolve(responseData);
-		}).catch((errorResponse) => {
-			const response = errorResponse.response;
-			reject({
-				code: response.status || 5000,
-				data: response.data || {},
-				message: `${response.status}: Put resource failed`,
-			});
-		});
-	}),
-	deleteResource: ({ link, data, apiDescription }) => createWrappedPromise((resolve, reject) => {
+		return apiCall
+			.then(
+				(response) => g(response, 'data'),
+			)
+			.catch(
+				errorResponseHandlerFactory(
+					({ errorCode }) => `${errorCode}: POST resource failed`
+				)
+			);
+	},
+	putResource: ({ link, data, apiDescription }) => {
 		const resolvedLink = resolveResourceLink(apiDescription, link);
-
 		const { name, params, queryParams, path, resourceSchema } = resolvedLink;
 
-		if (process.env.NODE_ENV !== 'production') {
-			const getMockResource = g(apiDescription, 'getMockResource', () => {
-			});
-			const mockResource = getMockResource(
+		let apiCall = mockApiCall(
+			apiDescription,
+			{
+				method: 'PUT',
+				data,
+				linkName: name,
+				linkParams: params,
+				resourceSchema,
+				definitions: g(apiDescription, 'definitions'),
+			}
+		);
+		if (!apiCall) {
+			apiCall = axios.put(
+				path,
+				data,
 				{
-					method: 'DELETE',
-					data,
-					linkName: name,
-					linkParams: params,
-					resourceSchema,
-					definitions: g(apiDescription, 'definitions'),
+					params: queryParams,
 				}
 			);
-
-			if (mockResource) {
-				try {
-					validateResource(mockResource, resourceSchema);
-					resolve(mockResource);
-				} catch (error) {
-					reject(error);
-				}
-				return;
-			}
 		}
 
-		axios.delete(
-			path,
+		return apiCall
+			.then(
+				(response) => g(response, 'data'),
+			)
+			.catch(
+				errorResponseHandlerFactory(
+					({ errorCode }) => `${errorCode}: PUT resource failed`
+				)
+			);
+	},
+	deleteResource: ({ link, data, apiDescription }) => {
+		const resolvedLink = resolveResourceLink(apiDescription, link);
+		const { name, params, queryParams, path, resourceSchema } = resolvedLink;
+
+		let apiCall = mockApiCall(
+			apiDescription,
 			{
-				params: queryParams,
+				method: 'DELETE',
+				data,
+				linkName: name,
+				linkParams: params,
+				resourceSchema,
+				definitions: g(apiDescription, 'definitions'),
 			}
-		).then(
-			resolve
-		).catch((errorResponse) => {
-			const response = errorResponse.response;
-			reject({
-				code: response.status || 5000,
-				data: response.data || {},
-				message: 'Delete resource failed',
-			});
-		});
-	}),
+		);
+		if (!apiCall) {
+			apiCall = axios.delete(
+				path,
+				{
+					params: queryParams,
+				}
+			);
+		}
+		return apiCall.catch(
+			errorResponseHandlerFactory(
+				({ errorCode }) => `${errorCode}: DELETE resource failed`
+			)
+		);
+	},
 	resolveResourceLink: (link: ResourceLink, apiDescription) => {
 		return resolveResourceLink(apiDescription, link);
 	},

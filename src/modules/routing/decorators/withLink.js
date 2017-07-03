@@ -13,13 +13,7 @@ const withLink = compose(
 		({ to, ...props }, { to: nextTo, ...nextProps }) => {
 			const isToEqual = isEqual(to, nextTo);
 			const isOthersShallowEqual = shallowEqual(props, nextProps);
-			// if (!isOthersShallowEqual) {
-			// 	debugger;
-			// }
-			console.log('isToEqual', isToEqual);
-			console.log('isOthersShallowEqual', isOthersShallowEqual);
 			const update = !isOthersShallowEqual || !isToEqual;
-			console.log('update', update, to);
 			return update;
 		},
 	),
