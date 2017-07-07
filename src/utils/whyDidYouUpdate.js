@@ -1,12 +1,32 @@
 import g from 'lodash/get';
-import _ from 'lodash';
+import  { mapValues, every, some, isArray } from 'lodash';
 import isEqual from 'lodash/isEqual';
-import { getDisplayName as recomposeGetDisplayName } from 'recompose';
 import React from 'react';
 import ReactComponentTreeHook from 'react/lib/ReactComponentTreeHook';
 
-const componentNameRegex = /^[a-zA-Z0-9\(\)]+$/;
+const defaultInclude = /^[a-zA-Z0-9\(\)]+$/;
 
+const shouldInclude = (componentName, { include = [defaultInclude], exclude = [] } = {}) => {
+	const normalizedInclude = isArray(include) ? include : [include];
+	const normalizedExclude = isArray(exclude) ? exclude : [exclude];
+
+	let isIncluded = some(normalizedInclude, r => r.test(componentName));
+	let isExcluded = some(normalizedExclude, r => r.test(componentName));
+
+	return isIncluded && !isExcluded
+};
+
+const findStateInTree = (_renderedComponent, debugID) => {
+	const renderedComponentDebugId = g(_renderedComponent, '_debugID');
+	if (renderedComponentDebugId === debugID) {
+		return g(_renderedComponent, '_instance.state');
+	}
+	const rc = g(_renderedComponent, '_renderedComponent');
+	if (!rc) {
+		return rc;
+	}
+	return findStateInTree(rc, debugID);
+};
 
 /**
  *
@@ -19,107 +39,73 @@ const componentNameRegex = /^[a-zA-Z0-9\(\)]+$/;
  * Perf.start();
  *
  * @param ReactDebugTool
+ * @param config
  */
-export default (ReactDebugTool) => {
+export default (ReactDebugTool, config) => {
 	const debugProps = {};
 	const debugNextProps = {};
 
-	const _onBeforeMountComponent = ReactDebugTool.onBeforeMountComponent;
-	ReactDebugTool.onBeforeMountComponent = (
-		function (debugID, element, ...args) {
-			const componentName = ReactComponentTreeHook.getDisplayName(debugID);
-			if (componentNameRegex.test(componentName)) {
-				debugNextProps[debugID] = g(element, 'props');
-			}
-			_onBeforeMountComponent(debugID, element, ...args)
-		}
-	).bind(ReactDebugTool);
+	const debugState = {};
+	const debugNextState = {};
 
-	const _onBeforeUpdateComponent = ReactDebugTool.onBeforeUpdateComponent;
-	ReactDebugTool.onBeforeUpdateComponent = (
-		function (debugID, element, ...args) {
-			const componentName = ReactComponentTreeHook.getDisplayName(debugID);
-			if (componentNameRegex.test(componentName)) {
-				debugProps[debugID] = debugNextProps[debugID];
-				debugNextProps[debugID] = g(element, 'props');
-			}
-			_onBeforeUpdateComponent(debugID, element, ...args);
-		}
-	).bind(ReactDebugTool);
-
-	const _onBeginLifeCycleTimer = ReactDebugTool.onBeginLifeCycleTimer;
-	ReactDebugTool.onBeginLifeCycleTimer = (
-		function (debugID, timerType) {
+	const hook = {
+		onBeginLifeCycleTimer(debugID, timerType) {
 			if (timerType === 'render') {
+
+				const element = ReactComponentTreeHook.getElement(debugID);
 				const componentName = ReactComponentTreeHook.getDisplayName(debugID);
 				// console.warn('render', componentName);
-				if (componentNameRegex.test(componentName)) {
+				if (shouldInclude(componentName, config)) {
+
+					debugProps[debugID] = debugNextProps[debugID];
+					debugNextProps[debugID] = g(element, 'props');
+
+					debugState[debugID] = debugNextState[debugID];
+					debugNextState[debugID] = findStateInTree(g(element, '_owner._renderedComponent'), debugID) || {};
+
+					// console.warn('onRender', componentName);
 					const prevProps = debugProps[debugID];
 					const props = debugNextProps[debugID];
+					// debugger;
+					const prevState = debugState[debugID];
+					const state = debugNextState[debugID];
 
-					const diff = require('shallow-diff')(prevProps || {}, props);
-					const updated = [...diff.added, ...diff.updated, ...diff.deleted];
-					console.groupCollapsed(`render: ${debugID} ${componentName}`);
-					console.log('updated', updated);
-					console.log('equalsDeep', compare(prevProps || {}, props));
-					console.groupEnd();
+					const propComparisons = mapValues(
+						props,
+						(value, key) => {
+							return isEqual(value, prevProps && prevProps[key])
+						}
+					);
+
+					const stateComparisons = mapValues(
+						state,
+						(value, key) => {
+							return isEqual(value, prevState && prevState[key])
+						}
+					);
+
+					const propsEqual = prevProps && every(propComparisons);
+					const stateEqual = prevState && every(stateComparisons);
+					const allEqual = propsEqual && stateEqual;
+					if (allEqual && prevProps) {
+						const propsDiff = require('shallow-diff')(prevProps || {}, props || {});
+						const stateDiff = require('shallow-diff')(prevState || {}, state || {});
+						const updatedProps = [...propsDiff.added, ...propsDiff.updated, ...propsDiff.deleted];
+						const updatedState = [...stateDiff.added, ...stateDiff.updated, ...stateDiff.deleted];
+						console.groupCollapsed(`avoidable render: id: ${debugID}, ${componentName}`);
+						console.log('updatedProps', updatedProps);
+						console.log('updatedState', updatedState);
+						console.log('propsBefore', prevProps);
+						console.log('propsAfter', props);
+						console.log('stateBefore', prevState);
+						console.log('stateAfter', state);
+						// console.log('equalsDeep', compare(prevProps || {}, props));
+						console.groupEnd();
+					}
 				}
 			}
-
-			_onBeginLifeCycleTimer(debugID, timerType);
-		}
-	).bind(ReactDebugTool);
-
-}
-
-
-var compare = function (a, b) {
-
-	var result = {
-		different: [],
-		missing_from_first: [],
-		missing_from_second: []
+		},
 	};
 
-	_.reduce(a, function (result, value, key) {
-		if (b.hasOwnProperty(key)) {
-			if (_.isEqual(value, b[key])) {
-				return result;
-			} else {
-				if (typeof (a[key]) != typeof ({}) || typeof (b[key]) != typeof ({})) {
-					//dead end.
-					result.different.push(key);
-					return result;
-				} else {
-					var deeper = compare(a[key], b[key]);
-					result.different = result.different.concat(_.map(deeper.different, (sub_path) => {
-						return key + "." + sub_path;
-					}));
-
-					result.missing_from_second = result.missing_from_second.concat(_.map(deeper.missing_from_second, (sub_path) => {
-						return key + "." + sub_path;
-					}));
-
-					result.missing_from_first = result.missing_from_first.concat(_.map(deeper.missing_from_first, (sub_path) => {
-						return key + "." + sub_path;
-					}));
-					return result;
-				}
-			}
-		} else {
-			result.missing_from_second.push(key);
-			return result;
-		}
-	}, result);
-
-	_.reduce(b, function (result, value, key) {
-		if (a.hasOwnProperty(key)) {
-			return result;
-		} else {
-			result.missing_from_first.push(key);
-			return result;
-		}
-	}, result);
-
-	return result;
-};
+	ReactDebugTool.addHook(hook);
+}
