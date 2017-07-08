@@ -37,7 +37,7 @@ const mockApiCall = (apiDescription,
 const errorResponseHandlerFactory = (messageFactory) => (error) => {
 	const errorCode = g(error, 'response.status', 5000);
 	const responseData = g(error, 'response.data');
-	const requestMethod = upperCase(g(error, 'response.config.method'));
+	const requestMethod = upperCase(g(error, 'config.method'));
 	throw {
 		code: errorCode,
 		data: responseData,
