@@ -1,3 +1,5 @@
+import format from 'date-fns/format';
+
 export const DEFINE_RESOURCE = 'client-core/resources/DEFINE_RESOURCE';
 export function defineResource({ link, content }) {
 	return { type: DEFINE_RESOURCE, payload: { link, content } };
@@ -9,13 +11,13 @@ export function ensureResource({ link, relations }) {
 }
 
 export const FETCH_RESOURCE = 'client-core/resources/FETCH_RESOURCE';
-export function fetchResource({ link, relations }) {
-	return { type: FETCH_RESOURCE, payload: { link, relations } };
+export function fetchResource({ link, relations, timestamp = format(new Date()) }) {
+	return { type: FETCH_RESOURCE, payload: { link, relations, timestamp } };
 }
 
 export const RECEIVE_FETCH_RESOURCE_FAILURE = 'client-core/resources/RECEIVE_FETCH_RESOURCE_FAILURE';
-export function receiveFetchResourceFailure({ link, error }) {
-	return { type: RECEIVE_FETCH_RESOURCE_FAILURE, payload: { link, error } };
+export function receiveFetchResourceFailure({ link, error, timestamp = format(new Date()) }) {
+	return { type: RECEIVE_FETCH_RESOURCE_FAILURE, payload: { link, error, timestamp } };
 }
 
 export const RECEIVE_RESOURCE = 'client-core/resources/RECEIVE_RESOURCE';
