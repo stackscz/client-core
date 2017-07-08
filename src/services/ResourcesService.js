@@ -1,5 +1,5 @@
 import type { ResourceLink } from 'modules/resources/types/ResourceLink';
-import { get as g, isFunction } from 'lodash';
+import { get as g, isFunction, upperCase } from 'lodash';
 import axios from 'axios';
 import resolveResourceLink from 'modules/resources/utils/resolveResourceLink';
 
@@ -37,10 +37,12 @@ const mockApiCall = (apiDescription,
 const errorResponseHandlerFactory = (messageFactory) => (error) => {
 	const errorCode = g(error, 'response.status', 5000);
 	const responseData = g(error, 'response.data');
+	const requestMethod = upperCase(g(error, 'response.config.method'));
 	throw {
 		code: errorCode,
 		data: responseData,
 		message: messageFactory ? messageFactory({ errorCode, responseData }) : 'Request Failed',
+		requestMethod,
 	}
 };
 
