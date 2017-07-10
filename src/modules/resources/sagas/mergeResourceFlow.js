@@ -25,7 +25,7 @@ import {
 	resourceSelectorFactory,
 } from '../selectors';
 
-const mergeDataMutatorSelector = (state) => g(state, 'resources.mergeDataMutator', identity);
+const mergeDataMutatorSelector = (state) => g(state, 'resources.mergeDataMutator', (link, data) => data);
 
 export function *mergeResourceTask({ payload: { link, data: inputData, parentLink } }) {
 	const apiDescription = yield select(resourcesModuleStateSelector);
@@ -77,7 +77,7 @@ export function *mergeResourceTask({ payload: { link, data: inputData, parentLin
 	const ApiService = yield select(resourcesServiceSelector);
 	const mergeDataMutator = yield select(mergeDataMutatorSelector);
 
-	const dataToTransfer = mergeDataMutator(parentLink || link, stripReadOnlyProperties(inputData, finalResourceSchema));
+	const dataToTransfer = mergeDataMutator(stripReadOnlyProperties(inputData, finalResourceSchema), parentLink || link);
 
 	let callResult;
 	if (resource && !resource.transient) {
