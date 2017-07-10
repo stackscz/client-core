@@ -38,6 +38,11 @@ export default createReducer(
 				return state
 					.set('reconnectProbeResourceLink', link)
 					.set('reconnectProbeResourceLastFailureTime', timestamp);
+			} else if(current && hash(current) === hash(link)) {
+				// not server nor network error, clear probe
+				return state
+					.set('reconnectProbeResourceLink', null)
+					.set('reconnectProbeResourceLastFailureTime', null);
 			}
 			return state;
 		},
