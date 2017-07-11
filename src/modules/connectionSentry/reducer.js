@@ -38,7 +38,7 @@ export default createReducer(
 				return state
 					.set('reconnectProbeResourceLink', link)
 					.set('reconnectProbeResourceLastFailureTime', timestamp);
-			} else if(current && hash(current) === hash(link)) {
+			} else if(current && hash(current) === hash(link) && !(isNetworkError(error) || isInternalServerError(error))) {
 				// not server nor network error, clear probe
 				return state
 					.set('reconnectProbeResourceLink', null)
