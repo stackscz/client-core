@@ -33,17 +33,24 @@ $ContextLayout-shadow-color: rgba(175, 175, 175, 0.25)
       height: 20px
       pointer-events: none
       transform: scaleX(1.2)
+      transition: box-shadow 250ms
 
-    &--top
+  &-scrollIndicator--top
+    top: 0
+    &:before
       top: 0
+      box-shadow: inset 2px 2px 2px transparent
+    &.isShown
       &:before
-        top: 0
         box-shadow: inset 2px 2px 2px $ContextLayout-shadow-color
 
-    &--bottom
+  &-scrollIndicator--bottom
+    bottom: 0
+    &:before
       bottom: 0
+      box-shadow: inset 2px -2px 2px transparent
+    &.isShown
       &:before
-        bottom: 0
         box-shadow: inset 2px -2px 2px $ContextLayout-shadow-color
 
 .ContextLayout--hasMaxContentHeight
