@@ -76,12 +76,18 @@ export default (apiDescription, link) => {
 	}
 
 	const path = `${g(apiDescription, 'basePath')}${URI.expand(pathTemplate, expandParams).toString()}`;
+	const host = g(apiDescription, 'host');
+	let url = path;
+	if(host) {
+		url = `${g(apiDescription, 'scheme', 'https')}://${host}${path}`
+	}
 	return {
 		name,
 		params: finalParams,
 		queryParams,
 		pathTemplate,
 		path,
+		url,
 		resourceSchema,
 	};
 };

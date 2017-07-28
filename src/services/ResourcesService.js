@@ -35,6 +35,7 @@ const mockApiCall = (apiDescription,
 };
 
 const errorResponseHandlerFactory = (messageFactory) => (error) => {
+	// CORS errors are opaque - https://github.com/mzabriskie/axios/issues/838
 	const errorCode = g(error, 'response.status', 5000);
 	const responseData = g(error, 'response.data');
 	const requestMethod = upperCase(g(error, 'config.method'));
@@ -49,7 +50,7 @@ const errorResponseHandlerFactory = (messageFactory) => (error) => {
 const service = {
 	getResource: ({ link, apiDescription }) => {
 		const resolvedLink = resolveResourceLink(apiDescription, link);
-		const { name, params, path, queryParams, resourceSchema } = resolvedLink;
+		const { name, params, url, queryParams, resourceSchema } = resolvedLink;
 
 		let apiCall = mockApiCall(
 			apiDescription,
@@ -63,7 +64,7 @@ const service = {
 			}
 		);
 		if (!apiCall) {
-			apiCall = axios.get(path, { params: queryParams });
+			apiCall = axios.get(url, { params: queryParams });
 		}
 
 		return apiCall
@@ -78,7 +79,7 @@ const service = {
 	},
 	postResource: ({ link, data, apiDescription }) => {
 		const resolvedLink = resolveResourceLink(apiDescription, link);
-		const { name, params, queryParams, path, resourceSchema } = resolvedLink;
+		const { name, params, queryParams, url, resourceSchema } = resolvedLink;
 
 		let apiCall = mockApiCall(
 			apiDescription,
@@ -94,7 +95,7 @@ const service = {
 		);
 		if (!apiCall) {
 			apiCall = axios.post(
-				path,
+				url,
 				data,
 				{
 					params: queryParams,
@@ -114,7 +115,7 @@ const service = {
 	},
 	putResource: ({ link, data, apiDescription }) => {
 		const resolvedLink = resolveResourceLink(apiDescription, link);
-		const { name, params, queryParams, path, resourceSchema } = resolvedLink;
+		const { name, params, queryParams, url, resourceSchema } = resolvedLink;
 
 		let apiCall = mockApiCall(
 			apiDescription,
@@ -129,7 +130,7 @@ const service = {
 		);
 		if (!apiCall) {
 			apiCall = axios.put(
-				path,
+				url,
 				data,
 				{
 					params: queryParams,
@@ -149,7 +150,7 @@ const service = {
 	},
 	deleteResource: ({ link, data, apiDescription }) => {
 		const resolvedLink = resolveResourceLink(apiDescription, link);
-		const { name, params, queryParams, path, resourceSchema } = resolvedLink;
+		const { name, params, queryParams, url, resourceSchema } = resolvedLink;
 
 		let apiCall = mockApiCall(
 			apiDescription,
@@ -164,7 +165,7 @@ const service = {
 		);
 		if (!apiCall) {
 			apiCall = axios.delete(
-				path,
+				url,
 				{
 					params: queryParams,
 				}
