@@ -1,4 +1,4 @@
-import { isString, isObject, get as g, reduce, each, startsWith } from 'lodash';
+import { isString, isObject, get as g, reduce, each, startsWith, isUndefined } from 'lodash';
 
 const walkRoutes = (to, routes, parentLocation) => {
 	const { name: routeName } = to;
@@ -35,20 +35,23 @@ const getPath = (to, routes) => {
 		return undefined;
 	}
 	const { params = {}, query = {} } = to;
-	let querystring = [];
+	let queryStringParts = [];
 	each(params, (paramValue, paramKey) => {
 		const replaced = result.replace(new RegExp(`:${paramKey}(?=\/|$)`), paramValue);
 		if (result === replaced) {
+			if (isUndefined(paramValue)) {
+				return;
+			}
 			// query param
-			querystring = [...querystring, `${paramKey}=${paramValue}`];
+			queryStringParts = [...queryStringParts, `${paramKey}=${paramValue}`];
 		}
 		result = replaced;
 	});
 	each(query, (paramValue, paramKey) => {
-		querystring = [...querystring, `${paramKey}=${paramValue}`];
+		queryStringParts = [...queryStringParts, `${paramKey}=${paramValue}`];
 	});
 
-	return `${result}${querystring.length ? `?${querystring.join('&')}` : ''}`;
+	return `${result}${queryStringParts.length ? `?${queryStringParts.join('&')}` : ''}`;
 };
 
 export default getPath;

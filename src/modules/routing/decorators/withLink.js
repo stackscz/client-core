@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 import { omitProps } from 'utils';
 import getPath from '../utils/getPath';
 
-const toSelector = memoize((to, pathname) => ({ ...to, pathname }));
+// const toSelector = memoize((to, pathname) => ({ ...to, pathname }));
 
 const withLink = compose(
 	shouldUpdate(
@@ -27,7 +27,7 @@ const withLink = compose(
 				}
 				const pathname = matchResult.split('?')[0];
 				return {
-					to: to ? toSelector(to, matchResult) : '/',
+					to: matchResult || '/',
 					isActive: onlyActiveOnIndex ? pathname === location.pathname : startsWith(location.pathname, pathname),
 				};
 			}
