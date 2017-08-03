@@ -6,7 +6,17 @@ import { connect } from 'react-redux';
 import { omitProps } from 'utils';
 import getPath from '../utils/getPath';
 
-// const toSelector = memoize((to, pathname) => ({ ...to, pathname }));
+const toSelector = memoize(
+	({ name, search, ...to }, path) => {
+		const pathParts = path.split('?');
+		const pathQueryString = pathParts[1];
+		return {
+			...to,
+			pathname: pathParts[0],
+			search: search || (pathQueryString ? `?${pathQueryString}` : ''),
+		};
+	}
+);
 
 const withLink = compose(
 	shouldUpdate(
@@ -27,7 +37,7 @@ const withLink = compose(
 				}
 				const pathname = matchResult.split('?')[0];
 				return {
-					to: matchResult || '/',
+					to: to ? toSelector(to, matchResult) : '/',
 					isActive: onlyActiveOnIndex ? pathname === location.pathname : startsWith(location.pathname, pathname),
 				};
 			}
