@@ -3,7 +3,7 @@ import { compose, withProps } from 'recompose';
 
 const extractParams = (string) => {
 	return reduce(
-		string.split('&'),
+		string ? string.split('&') : [],
 		(buffer, value) => {
 			const parts = value.split('=');
 			try {

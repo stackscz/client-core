@@ -43,7 +43,7 @@ const getPath = (to, routes) => {
 				return;
 			}
 			// query param
-			queryStringParts = [...queryStringParts, `${paramKey}=${paramValue}`];
+			queryStringParts = [...queryStringParts, `${paramKey}=${encodeURIComponent(paramValue)}`];
 		}
 		result = replaced;
 	});
