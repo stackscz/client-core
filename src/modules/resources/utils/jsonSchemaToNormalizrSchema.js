@@ -201,7 +201,6 @@ const visitSchema = (schema, resources, resourceLinkName, schemasBag) => {
 
 export default memoize(
 	(jsonSchema, paths, link) => {
-		console.warn('CONVERTING SCHEMA', jsonSchema, paths, link);
 		const schemasBag = {};
 		const resources = pathsToResources(paths);
 		return visitSchema(jsonSchema, resources, link && link.name, schemasBag);

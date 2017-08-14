@@ -59,7 +59,6 @@ export default ({
 		withHandlers(
 			{
 				[handleEnsureResourceKey]: ({ dispatch, [resourceLinkKey]: resourceLink }) => () => {
-					console.log('handleEnsureResourceKey', handleEnsureResourceKey);
 					dispatch(
 						ensureResource(
 							{
@@ -69,7 +68,6 @@ export default ({
 					);
 				},
 				[handleFetchResourceKey]: ({ dispatch, [resourceLinkKey]: resourceLink }) => () => {
-					console.log('handleFetchResourceKey', handleFetchResourceKey);
 					dispatch(
 						fetchResource(
 							{
