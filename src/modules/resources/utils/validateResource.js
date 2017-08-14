@@ -9,15 +9,10 @@ export default (data, schema) => {
 		let bodyValidationError = {
 			code: 5005,
 			message: 'Invalid resource format',
+			data,
+			expectedSchema: schema,
+			validationErrors: errors,
 		};
-		if (process.env.NODE_ENV === 'development') {
-			bodyValidationError = {
-				...bodyValidationError,
-				data,
-				expectedSchema: schema,
-				validationErrors: errors,
-			};
-		}
 		throw bodyValidationError;
 	}
 };
