@@ -1,4 +1,4 @@
-import { put, select, takeEvery } from 'redux-saga/effects';
+import { put, select, take, call, actionChannel } from 'redux-saga/effects';
 
 import {
 	ENSURE_RESOURCE,
@@ -22,5 +22,9 @@ export function* ensureResourceTask(action) {
 }
 
 export default function* ensureResourceFlow() {
-	yield takeEvery(ENSURE_RESOURCE, ensureResourceTask);
+	const requestChannel = yield actionChannel(ENSURE_RESOURCE);
+	while (true) {
+		const action = yield take(requestChannel);
+		yield call(ensureResourceTask, action);
+	}
 }
