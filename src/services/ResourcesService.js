@@ -34,6 +34,12 @@ const mockApiCall = (apiDescription,
 	);
 };
 
+const successResponseHandlerFactory = ({ method, resolvedLink }) => (response) => {
+	const { name, params, url, queryParams, resourceSchema } = resolvedLink;
+	console.log(`Mock request finished loading: ${method} ${JSON.stringify(url)}`);
+	return g(response, 'data');
+};
+
 const errorResponseHandlerFactory = (messageFactory) => (error) => {
 	// CORS errors are opaque - https://github.com/mzabriskie/axios/issues/838
 	const errorCode = g(error, 'response.status', 5000);
@@ -69,7 +75,7 @@ const service = {
 
 		return apiCall
 			.then(
-				(response) => g(response, 'data'),
+				successResponseHandlerFactory({ resolvedLink, method: 'GET' }),
 			)
 			.catch(
 				errorResponseHandlerFactory(
@@ -105,7 +111,7 @@ const service = {
 
 		return apiCall
 			.then(
-				(response) => g(response, 'data'),
+				successResponseHandlerFactory({ resolvedLink, method: 'POST' }),
 			)
 			.catch(
 				errorResponseHandlerFactory(
@@ -140,7 +146,7 @@ const service = {
 
 		return apiCall
 			.then(
-				(response) => g(response, 'data'),
+				successResponseHandlerFactory({ resolvedLink, method: 'PUT' }),
 			)
 			.catch(
 				errorResponseHandlerFactory(
@@ -171,7 +177,11 @@ const service = {
 				}
 			);
 		}
-		return apiCall.catch(
+		return apiCall
+			.then(
+				successResponseHandlerFactory({ resolvedLink, method: 'DELETE' }),
+			)
+			.catch(
 			errorResponseHandlerFactory(
 				({ errorCode }) => `${errorCode}: DELETE resource failed`
 			)
