@@ -25,7 +25,7 @@ import {
 	resourceSelectorFactory,
 } from '../selectors';
 
-const mergeDataMutatorSelector = (state) => g(state, 'resources.mergeDataMutator', (link, data) => data);
+const mergeDataMutatorSelector = (state) => g(state, 'resources.mergeDataMutator', (data, link) => data);
 
 export function *mergeResourceTask({ payload: { link, data: inputData, parentLink } }) {
 	const apiDescription = yield select(resourcesModuleStateSelector);
@@ -66,7 +66,7 @@ export function *mergeResourceTask({ payload: { link, data: inputData, parentLin
 		persistResource(
 			{
 				link,
-				transient: isUndefined(link) || g(resource, 'transient', false),
+				transient: isUndefined(link) || g(resource, 'transient', true),
 				parentLink,
 			}
 		)
@@ -120,6 +120,7 @@ export function *mergeResourceTask({ payload: { link, data: inputData, parentLin
 				receivePersistResourceFailure(
 					{
 						link,
+						parentLink,
 						error,
 					}
 				)

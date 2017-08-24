@@ -255,38 +255,6 @@ export default createReducer(
 					}
 				);
 
-				// update parent collection
-				if (parentLink) {
-					const collectionResourceId = hash(parentLink);
-					const collectionResource = g(newState, ['resources', collectionResourceId]);
-					if (!collectionResource) {
-						newState = newState.setIn(
-							['resources', collectionResourceId],
-							resourceDefaults(
-								state,
-								collectionResourceId,
-								{
-									link: parentLink,
-									content: [],
-								}
-							),
-						);
-					}
-
-					newState = newState.updateIn(
-						['resources', collectionResourceId],
-						(updatedCollectionResource) => {
-							let updatedContent = updatedCollectionResource.content;
-							if (
-								isArray(updatedCollectionResource.content) && !includes(updatedContent, content)
-							) {
-								updatedContent = updatedContent.concat([content]);
-							}
-							return updatedCollectionResource.set('content', updatedContent);
-						}
-					);
-				}
-
 				return newState;
 			},
 		],
@@ -343,6 +311,7 @@ export default createReducer(
 		[RECEIVE_PERSIST_RESOURCE_FAILURE]: [
 			t.struct({
 				link: ResourceLink,
+				parentLink: t.maybe(ResourceLink),
 				content: t.Any,
 			}),
 			(state, { payload: { link, error } }) => {

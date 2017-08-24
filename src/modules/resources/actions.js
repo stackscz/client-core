@@ -44,8 +44,8 @@ export function receivePersistResourceSuccess({ link, content, parentLink, trans
 }
 
 export const RECEIVE_PERSIST_RESOURCE_FAILURE = 'client-core/resources/RECEIVE_PERSIST_RESOURCE_FAILURE';
-export function receivePersistResourceFailure({ link, error }) {
-	return { type: RECEIVE_PERSIST_RESOURCE_FAILURE, payload: { link, error } };
+export function receivePersistResourceFailure({ link, parentLink, error }) {
+	return { type: RECEIVE_PERSIST_RESOURCE_FAILURE, payload: { link, parentLink, error } };
 }
 
 export const DELETE_RESOURCE = 'client-core/resources/DELETE_RESOURCE';
