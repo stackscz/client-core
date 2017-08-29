@@ -11,13 +11,11 @@ import { init } from 'utils/actions';
 
 import type { StoreConfig } from 'types/StoreConfig';
 
-function runSaga(sagaMiddleware: Function, saga: Function): void {
-	sagaMiddleware.run(saga);
-	// .done.catch((error) => {
-	// 	// TODO logging
-	// 	console.error(error);
-	// 	runSaga(sagaMiddleware, saga);
-	// });
+function runSaga(sagaMiddleware: Function, saga: Function, store, runtimeErrorCallback?: (error: Object, store: Object) => void): void {
+	const sagaPromise = sagaMiddleware.run(saga);
+	if (!!runtimeErrorCallback) {
+		sagaPromise.done.catch((error) => runtimeErrorCallback(error, store));
+	}
 }
 
 export default function createStore(config: StoreConfig = {}, initialState = {}): Object {
@@ -65,7 +63,7 @@ export default function createStore(config: StoreConfig = {}, initialState = {})
 	);
 	store.dispatch(init());
 	if (sagas.length) {
-		sagas.forEach(saga => runSaga(sagaMiddleware, saga));
+		sagas.forEach(saga => runSaga(sagaMiddleware, saga, store, config.runtimeErrorCallback));
 	}
 	return store;
 }
