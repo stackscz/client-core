@@ -1,4 +1,5 @@
 import { get as g, reduce } from 'lodash';
+import { withRouter } from 'react-router';
 import { compose, withProps } from 'recompose';
 
 const extractParams = (string) => {
@@ -22,6 +23,7 @@ const extractParams = (string) => {
 };
 
 export default compose(
+	withRouter,
 	withProps(
 		({ location }) => {
 			const querystring = g(location, 'search', '').replace('?', '');
