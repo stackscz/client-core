@@ -46,9 +46,10 @@ const withScrollbars = compose(
 					}
 					onUpdate(position);
 				},
-			handleScrollbarsRef: ({ setScrollbarsRef }) => (e) => {
+			handleScrollbarsRef: ({ setScrollbarsRef, scrollbarsRef = noop }) => (e) => {
 				if (e) {
 					setScrollbarsRef(e);
+					scrollbarsRef(e); // ref from props
 				}
 			},
 		}
@@ -67,6 +68,7 @@ const renderScrollbars = ({
 	setAutoScrollBottomChecked, // eslint-disable-line
 	scrollbarsElement, // eslint-disable-line
 	setScrollbarsRef, // eslint-disable-line
+	scrollbarsRef, // eslint-disable-line
 	trackColor,
 	thumbColor,
 	handleScrollbarsRef,
@@ -146,6 +148,7 @@ Scrollbars.propTypes = {
 	moduleName: T.string,
 	children: T.node,
 	modifiers: T.string,
+	scrollbarsRef: T.func,
 };
 
 export default Scrollbars;
