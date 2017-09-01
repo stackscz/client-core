@@ -2,6 +2,7 @@ import React, { PropTypes as T } from 'react';
 import { bm } from 'utils/bliss';
 import { compose, pure, withState, withHandlers } from 'recompose';
 import Scrollbars from 'components/Scrollbars';
+import { noop } from 'lodash';
 
 import './index.sass';
 
@@ -20,6 +21,8 @@ const renderContextLayout = ({
 	} = {},
 	setScrollPosition,
 	handleScrollFrame,
+	handleScrollbarsUpdate,
+	handleScrollbarsRef,
 } = {}) => {
 	const scrolls = clientHeight < scrollHeight;
 	return (
@@ -41,10 +44,11 @@ const renderContextLayout = ({
 						!!children && (
 							<Scrollbars
 								onScrollFrame={handleScrollFrame}
-								onUpdate={setScrollPosition}
+								onUpdate={handleScrollbarsUpdate}
 								autoHeight={autoHeight || !!maxContentHeight}
 								autoHeightMax={maxContentHeight}
 								autoScrollBottom={autoScrollBottom}
+								scrollbarsRef={handleScrollbarsRef}
 							>
 								{children}
 							</Scrollbars>
@@ -65,9 +69,18 @@ const ContextLayout = compose(
 	pure,
 	withState('scrollPosition', 'setScrollPosition', {}),
 	withHandlers({
-		handleScrollFrame: ({ setScrollPosition, onScroll }) => (e) => {
+		handleScrollFrame: ({ setScrollPosition, onScroll = noop }) => (e) => {
 			onScroll(e);
 			setScrollPosition(e);
+		},
+		handleScrollbarsUpdate: ({ setScrollPosition, onScrollbarsUpdate = noop }) => (e) => {
+			onScrollbarsUpdate(e);
+			setScrollPosition(e);
+		},
+		handleScrollbarsRef: ({ scrollbarsRef = noop }) => (e) => {
+			if (e) {
+				scrollbarsRef(e);
+			}
 		}
 	}),
 )(renderContextLayout);
@@ -77,6 +90,8 @@ ContextLayout.propTypes = {
 	children: T.node,
 	footer: T.node,
 	onScroll: T.func,
+	onScrollbarsUpdate: T.func,
+	scrollbarsRef: T.func,
 };
 
 export default ContextLayout;
