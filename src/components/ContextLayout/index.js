@@ -1,6 +1,6 @@
 import React, { PropTypes as T } from 'react';
 import { bm } from 'utils/bliss';
-import { compose, pure, withState } from 'recompose';
+import { compose, pure, withState, withHandlers } from 'recompose';
 import Scrollbars from 'components/Scrollbars';
 
 import './index.sass';
@@ -19,6 +19,7 @@ const renderContextLayout = ({
 		scrollHeight,
 	} = {},
 	setScrollPosition,
+	handleScrollFrame,
 } = {}) => {
 	const scrolls = clientHeight < scrollHeight;
 	return (
@@ -39,7 +40,7 @@ const renderContextLayout = ({
 					{
 						!!children && (
 							<Scrollbars
-								onScrollFrame={setScrollPosition}
+								onScrollFrame={handleScrollFrame}
 								onUpdate={setScrollPosition}
 								autoHeight={autoHeight || !!maxContentHeight}
 								autoHeightMax={maxContentHeight}
@@ -63,12 +64,19 @@ const renderContextLayout = ({
 const ContextLayout = compose(
 	pure,
 	withState('scrollPosition', 'setScrollPosition', {}),
+	withHandlers({
+		handleScrollFrame: ({ setScrollPosition, onScroll }) => (e) => {
+			onScroll(e);
+			setScrollPosition(e);
+		}
+	}),
 )(renderContextLayout);
 
 ContextLayout.propTypes = {
 	header: T.node,
 	children: T.node,
 	footer: T.node,
+	onScroll: T.func,
 };
 
 export default ContextLayout;
