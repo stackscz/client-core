@@ -19,9 +19,11 @@ const withScrollbars = compose(
 	),
 	withProps(
 		() => {
-			const detect = new MobileDetect(window.navigator.userAgent);
-			const isSmall = detect.phone() || detect.mobile() || detect.tablet();
-
+			let isSmall = false;
+			if (typeof window === 'object') {
+				const detect = new MobileDetect(window.navigator.userAgent);
+				isSmall = detect.phone() || detect.mobile() || detect.tablet();
+			}
 			return {
 				trackColor: isSmall ? 'transparent' : '#e4e4e4',
 				thumbColor: isSmall ? 'transparent' : '#afafaf',

@@ -47,7 +47,7 @@ export default function createStore(config: StoreConfig = {}, initialState = {})
 	enhancers.unshift(applyMiddleware(...middleware));
 
 	// avoid dependency on react-dom on server
-	if ((0, window)) {
+	if (typeof window === 'object') {
 		const batchedSubscribe = require('redux-batched-subscribe').batchedSubscribe;
 		const batchedUpdates = require('react-dom').unstable_batchedUpdates;
 		if (batchedUpdates) {
