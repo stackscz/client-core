@@ -19,9 +19,11 @@ const withScrollbars = compose(
 	),
 	withProps(
 		() => {
-			const detect = new MobileDetect(window.navigator.userAgent);
-			const isSmall = detect.phone() || detect.mobile() || detect.tablet();
-
+			let isSmall = false;
+			if (typeof window === 'object') {
+				const detect = new MobileDetect(window.navigator.userAgent);
+				isSmall = detect.phone() || detect.mobile() || detect.tablet();
+			}
 			return {
 				trackColor: isSmall ? 'transparent' : '#e4e4e4',
 				thumbColor: isSmall ? 'transparent' : '#afafaf',
@@ -46,9 +48,10 @@ const withScrollbars = compose(
 					}
 					onUpdate(position);
 				},
-			handleScrollbarsRef: ({ setScrollbarsRef }) => (e) => {
+			handleScrollbarsRef: ({ setScrollbarsRef, scrollbarsRef = noop }) => (e) => {
 				if (e) {
 					setScrollbarsRef(e);
+					scrollbarsRef(e); // ref from props
 				}
 			},
 		}
@@ -67,6 +70,7 @@ const renderScrollbars = ({
 	setAutoScrollBottomChecked, // eslint-disable-line
 	scrollbarsElement, // eslint-disable-line
 	setScrollbarsRef, // eslint-disable-line
+	scrollbarsRef, // eslint-disable-line
 	trackColor,
 	thumbColor,
 	handleScrollbarsRef,
@@ -146,6 +150,7 @@ Scrollbars.propTypes = {
 	moduleName: T.string,
 	children: T.node,
 	modifiers: T.string,
+	scrollbarsRef: T.func,
 };
 
 export default Scrollbars;

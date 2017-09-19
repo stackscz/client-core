@@ -1,5 +1,5 @@
 import React from 'react';
-import { bm } from 'utils/bliss';
+import { bm } from 'client-core/lib/utils/bliss';
 
 const renderApp = ({
 	moduleName = 'App',
