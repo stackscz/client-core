@@ -1,3 +1,4 @@
+import { buffers } from 'redux-saga';
 import { put, select, take, call, actionChannel } from 'redux-saga/effects';
 
 import {
@@ -22,7 +23,7 @@ export function* ensureResourceTask(action) {
 }
 
 export default function* ensureResourceFlow() {
-	const requestChannel = yield actionChannel(ENSURE_RESOURCE);
+	const requestChannel = yield actionChannel(ENSURE_RESOURCE, buffers.expanding());
 	while (true) {
 		const action = yield take(requestChannel);
 		yield call(ensureResourceTask, action);
