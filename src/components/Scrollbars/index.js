@@ -2,8 +2,7 @@ import React, { PropTypes as T } from 'react';
 import { Scrollbars as CustomScrollbars } from 'react-custom-scrollbars';
 import { noop } from 'lodash';
 import { bm, be } from 'utils/bliss';
-import MobileDetect from 'mobile-detect';
-import { compose, pure, withState, withProps, withHandlers, withPropsOnChange } from 'recompose';
+import { compose, pure, withState, withHandlers, withPropsOnChange } from 'recompose';
 
 
 const withScrollbars = compose(
@@ -16,19 +15,6 @@ const withScrollbars = compose(
 			}
 		},
 		noop,
-	),
-	withProps(
-		() => {
-			let isSmall = false;
-			if (typeof window === 'object') {
-				const detect = new MobileDetect(window.navigator.userAgent);
-				isSmall = detect.phone() || detect.mobile() || detect.tablet();
-			}
-			return {
-				trackColor: isSmall ? 'transparent' : '#e4e4e4',
-				thumbColor: isSmall ? 'transparent' : '#afafaf',
-			};
-		}
 	),
 	withHandlers(
 		{

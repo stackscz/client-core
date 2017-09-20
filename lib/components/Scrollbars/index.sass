@@ -1,58 +1,37 @@
+$ScrollbarsTrackColor: #e4e4e4 !default
+$ScrollbarsThumbColor: #afafaf !default
+
 .Scrollbars
-  &-trackHorizontal
-    right: 6px
-    bottom: 0
-    left: 0
-    border-radius: 0
 
-  &-thumbHorizontal
-    right: 0
-    bottom: 0
-    top: 0
-    border-radius: 0
-    z-index: 10
+.Scrollbars-view
+  will-change: transform
+  z-index: 2
 
-  &-trackVertical
-    right: 0
-    bottom: 0
-    top: 0
-    border-radius: 0
+.Scrollbars-trackHorizontal
+  right: 6px
+  bottom: 0
+  left: 0
+  border-radius: 0
+  background-color: $ScrollbarsTrackColor
+  z-index: 3
 
-  &-thumbVertical
-    cursor: pointer
-    border-radius: 0
-    position: relative
-    z-index: 1
+.Scrollbars-thumbHorizontal
+  right: 0
+  bottom: 0
+  top: 0
+  border-radius: 0
+  background-color: $ScrollbarsThumbColor
 
-    &:before
-      position: absolute
-      top: 0
-      bottom: 0
-      right: 0
-      left: -10px
-      content: ''
-      display: block
+.Scrollbars-trackVertical
+  right: 0
+  bottom: 0
+  top: 0
+  border-radius: 0
+  background-color: $ScrollbarsTrackColor
+  z-index: 3
 
-  &-view
-    will-change: transform
-
-  &--flexChild
-    flex-grow: 1
-
-  &--flexContainer
-    display: flex
-    flex-direction: column
-
-  &--staticContainer
-    .Scrollbars-view
-      position: static !important
-
-  &--horizontalOnly
-    .Scrollbars-view
-      overflow-x: scroll !important
-      overflow-y: hidden !important
-
-  &--verticalOnly
-    .Scrollbars-view
-      overflow-x: hidden !important
-      overflow-y: scroll !important
+.Scrollbars-thumbVertical
+  cursor: pointer
+  border-radius: 0
+  position: relative
+  background-color: $ScrollbarsThumbColor
