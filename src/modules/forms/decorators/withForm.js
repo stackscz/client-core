@@ -1,12 +1,13 @@
 import React, { PropTypes as T } from 'react';
-import { isEmpty, reduce } from 'lodash';
+import { isEmpty, reduce, constant } from 'lodash';
 import dot from 'dot-object';
 import { reduxForm, stopSubmit } from 'redux-form';
-import { compose } from 'recompose';
+import { compose, withProps, branch } from 'recompose';
 import { connect } from 'react-redux';
 
 import validateByJsonSchema from '../validateByJsonSchema';
 import mergeWithArrays from '../mergeWithArrays';
+import assignDefaultsToRequiredObjectProperties from '../assignDefaultsToRequiredObjectProperties';
 
 /**
  * Wraps component with redux-form enhanced with JSON schema validation
@@ -18,6 +19,7 @@ export default function withForm({
 	errorMessages = {},
 	validate: userValidate,
 	initialValues,
+	enableObjectDefaults = true,
 	...config
 } = {}) {
 	const validate = (values, props) => {
@@ -93,6 +95,7 @@ export default function withForm({
 				);
 			}
 		}
+
 		return compose(
 			connect(
 				false,
@@ -101,6 +104,17 @@ export default function withForm({
 						dispatch(stopSubmit(targetForm, errors));
 					},
 				})
+			),
+			branch(
+				constant(enableObjectDefaults),
+				withProps(
+					({ initialValues, schema: schemaFromProps }) => {
+						const valueSchema = schemaFromProps || schema;
+						return {
+							initialValues: assignDefaultsToRequiredObjectProperties(initialValues, valueSchema),
+						}
+					},
+				),
 			),
 			reduxForm(
 				{

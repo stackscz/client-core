@@ -5,45 +5,8 @@ import mergeWithArrays from 'modules/forms/mergeWithArrays';
 import type { JsonSchema } from 'modules/forms/types/JsonSchema';
 import type { FormErrorMessages } from 'modules/forms/types/FormErrorMessages';
 
-const assignDefaultsToRequiredObjectProperties = (data, schema) => {
-	const properties = g(schema, 'properties');
-	const required = g(schema, 'required', []);
-	const schemaType = g(schema, 'type', isPlainObject(properties) ? 'object' : false);
-	if (schemaType === 'object') {
-		let fixedData = data;
-		if (!fixedData) {
-			fixedData = {};
-		}
-		fixedData = reduce(
-			required,
-			(acc, requiredPropertyName) => {
-				if (!g(acc, requiredPropertyName)) {
-					const propertySchema = g(properties, requiredPropertyName);
-					if (propertySchema) {
-						const assignedDefault = assignDefaultsToRequiredObjectProperties(g(fixedData, requiredPropertyName), propertySchema);
-						if (assignedDefault) {
-							return {
-								...acc,
-								[requiredPropertyName]: assignedDefault,
-							}
-						}
-						return acc;
-					}
-				}
-			},
-			fixedData,
-		);
-		return fixedData;
-	}
-	return data;
-};
-
-export default function (dataToValidate,
-	schema: JsonSchema = {},
-	errorMessages: FormErrorMessages = {},) {
-	let dataToValidateWithDefaults = cloneDeep(dataToValidate);
-	dataToValidateWithDefaults = assignDefaultsToRequiredObjectProperties(dataToValidateWithDefaults, schema);
-	const validate = jsonschema.validate(dataToValidateWithDefaults, schema);
+export default function (dataToValidate, schema: JsonSchema = {}, errorMessages: FormErrorMessages = {}) {
+	const validate = jsonschema.validate(dataToValidate, schema);
 	const errors = validate.valid ? {}
 		: dot.object(
 			validate.errors.reduce((allErrs, err) => {
