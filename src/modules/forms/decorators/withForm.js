@@ -19,7 +19,6 @@ export default function withForm({
 	errorMessages = {},
 	validate: userValidate,
 	initialValues,
-	enableObjectDefaults = true,
 	...config
 } = {}) {
 	const validate = (values, props) => {
@@ -36,8 +35,10 @@ export default function withForm({
 		if (finalErrorMessagesPrefix) {
 			finalErrorMessages = dot.pick(finalErrorMessagesPrefix, dot.object({ ...finalErrorMessages }));
 		}
+		const finalSchema = propsSchema||schema;
+		const valuesToValidate = assignDefaultsToRequiredObjectProperties(values, finalSchema);
 		const validateJsonSchemaErrors = validateByJsonSchema(
-			values,
+			valuesToValidate,
 			propsSchema || schema,
 			finalErrorMessages
 		);
@@ -104,17 +105,6 @@ export default function withForm({
 						dispatch(stopSubmit(targetForm, errors));
 					},
 				})
-			),
-			branch(
-				constant(enableObjectDefaults),
-				withProps(
-					({ initialValues, schema: schemaFromProps }) => {
-						const valueSchema = schemaFromProps || schema;
-						return {
-							initialValues: assignDefaultsToRequiredObjectProperties(initialValues, valueSchema),
-						}
-					},
-				),
 			),
 			reduxForm(
 				{
