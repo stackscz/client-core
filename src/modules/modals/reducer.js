@@ -19,7 +19,7 @@ export default createReducer(
 			}),
 			(state, action) => {
 				const { modalId, contentElement, persistent } = action.payload;
-				return state.set(modalId, { ...contentElement, persistent });
+				return state.set(modalId, { contentElement, persistent });
 			},
 		],
 		[CLOSE_MODAL]: [

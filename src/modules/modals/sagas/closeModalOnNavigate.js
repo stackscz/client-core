@@ -1,9 +1,6 @@
 import { put, take, select } from 'redux-saga/effects';
 import { reduce } from 'lodash';
-
-import {
-	NAVIGATE,
-} from 'modules/routing/actions';
+import { LOCATION_CHANGE } from 'react-router-redux';
 
 import {
 	closeModal,
@@ -11,7 +8,7 @@ import {
 
 export default function *closeModalOnNavigate() {
 	while (true) { // eslint-disable-line no-constant-condition
-		yield take(NAVIGATE);
+		yield take(LOCATION_CHANGE);
 		const modals = yield select(state => state.modals);
 
 		const modalIds = reduce(modals, (acc, modal, id) => {
