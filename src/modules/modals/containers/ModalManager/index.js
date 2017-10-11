@@ -1,10 +1,8 @@
 import React, { PropTypes as T } from 'react';
-// import ReactTransitionGroup from 'react-addons-transition-group';
 import { isEmpty, map } from 'lodash';
-
 import { connect } from 'react-redux';
-
 import { compose, setPropTypes } from 'recompose';
+
 import { bm, be } from 'utils/bliss';
 
 const renderModalManager = ({
@@ -13,16 +11,16 @@ const renderModalManager = ({
 	modals,
 } = {}) => (
 	<div className={bm(moduleName, modifiers)}>
-		{/*<ReactTransitionGroup component="div" className={be(moduleName, 'content')}>*/}
-		{
-			!isEmpty(modals)
-				? map(modals, (modalElement, modalId) => React.cloneElement(modalElement, {
-				modalId,
-				key: modalId,
-			}))
-				: null
-		}
-		{/*</ReactTransitionGroup>*/}
+		{!isEmpty(modals) && (
+			<div className={be(moduleName, 'modals')}>
+				{map(modals, (modalElement, modalId) => {
+					return React.cloneElement(modalElement.contentElement, {
+						modalId,
+						key: modalId,
+					})
+				})}
+			</div>
+		)}
 	</div>
 );
 
