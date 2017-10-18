@@ -61,9 +61,6 @@ const renderContextLayout = ({
 							{children}
 						</Scrollbars>
 					)}
-					{scrolls && scrollTopRatio !== 1 && (
-						<span className="ContextLayout-scrollIndicator ContextLayout-scrollIndicator--bottom" />
-					)}
 				</div>
 			</div>
 			{!!footer && (
