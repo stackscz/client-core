@@ -1,4 +1,4 @@
-import { get as g, size, first, values, isString, isArray, isObject, isEmpty, map, reduce, pickBy } from 'lodash';
+import { get as g, size, first, values, isString, isArray, isObject, has, map, reduce, pickBy, assign, concat, uniq, cloneDeep } from 'lodash';
 import { schema as NS } from 'normalizr';
 import memoize from 'fast-memoize';
 import hash from 'utils/hash';
@@ -47,11 +47,64 @@ const defineObjectSchemaProperties = function (schema, definitions, entitySchema
 	);
 };
 
-const visitSchema = (schema, resources, resourceLinkName, schemasBag) => {
-	if (isString(schema)) {
+const visitSchema = (schemaAttr, resources, resourceLinkName, schemasBag) => {
+	if (isString(schemaAttr)) {
 		return undefined;
 	}
-	const valueType = g(schema, 'type', g(schema, 'anyOf', 'object'));
+
+	let schema = schemaAttr;
+	let allOfSchema = g(schema, 'allOf');
+	if (allOfSchema && isArray(allOfSchema)) {
+		const definitions = g(schema, 'definitions', {});
+		const mergedSchemas = reduce(
+			allOfSchema,
+			(acc, schemaItem) => {
+				if (isString(schemaItem)) {
+					return acc;
+				}
+
+				const schemaElement = resolveJsonPointer(
+					schema,
+						{
+							...schemaItem,
+							definitions,
+						},
+				);
+
+				if (!schemaElement) {
+					return acc;
+				}
+
+				assign(
+					acc.properties,
+					g(schemaElement, 'properties', {}),
+				);
+
+				acc.required = uniq(
+					concat(
+						acc.required,
+						g(schemaElement, 'required', []),
+					)
+				);
+
+				return acc;
+			},
+			{
+				properties: {},
+				required: [],
+			}
+		);
+
+		const schemaCopy = cloneDeep(schema);
+		assign(
+			schemaCopy,
+			mergedSchemas
+		);
+
+		schema = schemaCopy;
+	}
+
+	let valueType = g(schema, 'type', g(schema, 'anyOf', 'object'));
 	const definitions = g(schema, 'definitions', {});
 	if (isArray(valueType)) {
 		const unionSchemaDefinition = reduce(
