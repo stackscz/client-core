@@ -1,4 +1,4 @@
-import React, { PropTypes as T } from 'react';
+import React from 'react';
 import { isEmpty, reduce, isFunction, constant } from 'lodash';
 import dot from 'dot-object';
 import { reduxForm, stopSubmit } from 'redux-form';

@@ -1,4 +1,5 @@
-import React, { PropTypes as T } from 'react';
+import React from 'react';
+import T from 'prop-types';
 import { compose, pure, withState, withHandlers } from 'recompose';
 import { bm, be } from 'utils/bliss';
 import Scrollbars from 'components/Scrollbars';

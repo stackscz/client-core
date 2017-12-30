@@ -1,4 +1,5 @@
-import React, { PropTypes as T } from 'react';
+import React from 'react';
+import T from 'prop-types';
 import { isEmpty, map } from 'lodash';
 import { connect } from 'react-redux';
 import { compose, setPropTypes } from 'recompose';

@@ -20,6 +20,7 @@
     "jsonschema": "^1.1.1",
     "lodash": "^4.17.4",
     "normalizr": "https://github.com/brabeji/normalizr.git#ee110c6391bcf6c3f0245b932abdc28ec3003c4e",
+    "prop-types": "^15.6.0",
     "react-custom-scrollbars": "^4.1.2",
     "redux-batched-subscribe": "^0.1.6",
     "tcomb-validation": "^3.3.0",
