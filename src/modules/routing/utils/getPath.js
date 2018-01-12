@@ -37,7 +37,9 @@ const getPath = (to, routes) => {
 	const { params = {}, query = {} } = to;
 	let queryStringParts = [];
 	each(params, (paramValue, paramKey) => {
-		const replaced = result.replace(new RegExp(`:${paramKey}(?=\/|$)`), paramValue);
+		const replaced = !paramValue ?
+			result.replace(new RegExp(`/:${paramKey}\\?(?=\/|$)`), '') :
+			result.replace(new RegExp(`:${paramKey}\\??(?=\/|$)`), paramValue);
 		if (result === replaced) {
 			if (isUndefined(paramValue)) {
 				return;
