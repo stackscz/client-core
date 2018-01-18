@@ -1,4 +1,4 @@
-import { get as g, isPlainObject, cloneDeep, reduce } from 'lodash';
+import { get as g, isPlainObject, cloneDeep, reduce, setWith } from 'lodash';
 import jsonschema from 'jsonschema';
 import dot from 'dot-object';
 import mergeWithArrays from 'modules/forms/mergeWithArrays';
@@ -7,48 +7,53 @@ import type { FormErrorMessages } from 'modules/forms/types/FormErrorMessages';
 
 export default function (dataToValidate, schema: JsonSchema = {}, errorMessages: FormErrorMessages = {}) {
 	const validate = jsonschema.validate(dataToValidate, schema);
-	const errors = validate.valid ? {}
-		: dot.object(
-			validate.errors.reduce((allErrs, err) => {
-				let errorPath;
+	if (validate.valid) {
+		return {};
+	}
 
-				if (err.name === 'required') {
-					errorPath = `${err.property}.${err.argument}`;
+	const dotNotationErrors = validate.errors.reduce(
+		(acc, err) => {
+			let errorPath;
 
-					if (err.schema.type === 'object') {
-						const errTypePath = `schema.properties.${err.argument}.type`;
-						const errType = dot.pick(errTypePath, err);
+			if (err.name === 'required') {
+				errorPath = `${err.property}.${err.argument}`;
 
-						// Redux `FieldArray` needs a special treatment.
-						if (errType === 'array') {
-							errorPath += '._error';
-						}
-					}
-				} else {
-					errorPath = err.property;
+				if (err.schema.type === 'object') {
+					const errTypePath = `schema.properties.${err.argument}.type`;
+					const errType = dot.pick(errTypePath, err);
 
-					if (err.schema.type === 'array') {
+					// Redux `FieldArray` needs a special treatment.
+					if (errType === 'array') {
 						errorPath += '._error';
 					}
 				}
+			} else {
+				errorPath = err.property;
 
-				errorPath = errorPath.replace('instance.', '');
+				if (err.schema.type === 'array') {
+					errorPath += '._error';
+				}
+			}
 
-				const errorMessagePath = `${errorPath}.${err.name}`
-					.replace(/\[\d+\]/, ''); // errorMessages don't care about which element exactly has the error.
+			errorPath = errorPath.replace('instance.', '');
 
-				const errorMessage = dot.pick(errorMessagePath, errorMessages) || `${err.name}`;
+			// errorMessages don't care about which element exactly has the error.
+			const errorMessagePath = `${errorPath}.${err.name}`.replace(/\[\d+\]/, '');
 
-				return mergeWithArrays(
-					{},
-					allErrs,
-					{
-						[errorPath]: [errorPath].errorMessage ? `${[errorPath].errorMessage} ${errorMessage}`
-							: errorMessage,
-					}
-				);
-			}, {})
-		);
+			const errorMessage = dot.pick(errorMessagePath, errorMessages) || `${err.name}`;
+
+			return mergeWithArrays(
+				acc,
+				{
+					[errorPath]: [errorPath].errorMessage ? `${[errorPath].errorMessage} ${errorMessage}`
+						: errorMessage,
+				}
+			);
+		},
+		{}
+	);
+
+	const errors = dot.object(dotNotationErrors);
 
 	return errors;
 }

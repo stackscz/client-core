@@ -17,7 +17,7 @@
     "dot-object": "^1.5.4",
     "fast-memoize": "^2.2.7",
     "invariant": "^2.2.2",
-    "jsonschema": "^1.1.1",
+    "jsonschema": "^1.2.2",
     "lodash": "^4.17.4",
     "normalizr": "https://github.com/brabeji/normalizr.git#ee110c6391bcf6c3f0245b932abdc28ec3003c4e",
     "prop-types": "^15.6.0",

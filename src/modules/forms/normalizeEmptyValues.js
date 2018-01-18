@@ -11,11 +11,9 @@ import { get as g, reduce, isString } from 'lodash';
  * @return {{}}
  */
 const normalizeEmptyValues = (data, schema) => {
-	const properties = g(schema, 'properties');
-
-	return reduce(properties, (acc, propertySchema, propertyName) => {
+	return reduce(data, (acc, propertyValue, propertyName) => {
+		const propertySchema = g(schema, ['properties', propertyName]);
 		const type = g(propertySchema, 'type');
-		const propertyValue = g(data, propertyName);
 
 		// omit empty string property
 		if (isString(propertyValue) && propertyValue.length === 0) {

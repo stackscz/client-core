@@ -1,5 +1,5 @@
 import React from 'react';
-import { isEmpty, reduce, isFunction, constant } from 'lodash';
+import { isEmpty, reduce, isFunction, constant, transform, isObject, mapValues } from 'lodash';
 import dot from 'dot-object';
 import { reduxForm, stopSubmit } from 'redux-form';
 import { compose, withProps, lifecycle, withHandlers } from 'recompose';
@@ -8,8 +8,21 @@ import { connect } from 'react-redux';
 
 import validateByJsonSchema from '../validateByJsonSchema';
 import mergeWithArrays from '../mergeWithArrays';
-import assignDefaultsToRequiredObjectProperties from '../assignDefaultsToRequiredObjectProperties';
 import normalizeEmptyValues from '../normalizeEmptyValues';
+
+const deepMap = (obj, iterator, context) => transform(
+	obj,
+	function (result, val, key) {
+		result[key] = isObject(val) ? deepMap(val, iterator, context) : iterator.call(context, val, key, obj);
+	},
+);
+
+const wrapAsErrors = (errorMessageOrSubErrors) => {
+	if (isObject(errorMessageOrSubErrors)) {
+		return mapValues(errorMessageOrSubErrors, wrapAsErrors);
+	}
+	return { _errors: [errorMessageOrSubErrors] };
+};
 
 const withForm = (options = {}) => {
 	return compose(
@@ -44,22 +57,32 @@ const withForm = (options = {}) => {
 				if (finalErrorMessagesPrefix) {
 					finalErrorMessages = dot.pick(finalErrorMessagesPrefix, dot.object({ ...finalErrorMessages }));
 				}
-				const finalSchema = propsSchema||schema;
-				const valuesToValidate = normalizeEmptyValues(
-					assignDefaultsToRequiredObjectProperties(values, finalSchema),
-					finalSchema,
-				);
-				const validateJsonSchemaErrors = validateByJsonSchema(
-					valuesToValidate,
-					propsSchema || schema,
-					finalErrorMessages
+				const finalSchema = propsSchema || schema;
+				const normalizedValues = normalizeEmptyValues(values, finalSchema);
+
+				const validateJsonSchemaErrors = wrapAsErrors(
+					validateByJsonSchema(
+						normalizedValues,
+						propsSchema || schema,
+						finalErrorMessages
+					),
 				);
 
-				const userValidateErrors = finalUserValidate ? finalUserValidate(values, props) : {};
+				let userValidateErrors = {};
+				if (finalUserValidate) {
+					const userValidateErrorsUnwrapped = finalUserValidate(values, props);
+					const userValidateErrorsUnwrappedDot = dot.dot(userValidateErrorsUnwrapped);
+					const userValidateErrorsUnwrappedDotTranslated = mapValues(
+						userValidateErrorsUnwrappedDot,
+						(errorName, propertyPath) => dot.pick(`${propertyPath}.${errorName}`, errorMessages) || `${errorName}`,
+					);
+					const userValidateErrorsUnwrappedTranslated = dot.object(userValidateErrorsUnwrappedDotTranslated);
+					userValidateErrors = wrapAsErrors(userValidateErrorsUnwrappedTranslated);
+				}
 
 				const finalUserValidateErrors = dot.object(
 					reduce(
-						dot.dot({ ...userValidateErrors }),
+						dot.dot(userValidateErrors),
 						(result, value, key) => {
 							const path = `${key}.${value}`;
 							result[key] = dot.pick(path, finalErrorMessages) || value; // eslint-disable-line no-param-reassign
@@ -93,6 +116,6 @@ const withForm = (options = {}) => {
 		omitProps(['schema', 'errorMessagesPrefix', 'errorMessages', 'userValidate', 'checkErrors']),
 		reduxForm(),
 	);
-}
+};
 
 export default withForm;
