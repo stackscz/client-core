@@ -11,7 +11,6 @@
     "build:watch": "npm run clean && node ./node_modules/babel-cli/bin/babel src/ --out-dir lib --watch --copy-files"
   },
   "dependencies": {
-    "ajv": "^5.2.2",
     "axios": "^0.16.0",
     "date-fns": "^1.28.2",
     "dot-object": "^1.5.4",

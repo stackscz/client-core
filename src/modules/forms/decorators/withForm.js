@@ -1,14 +1,28 @@
 import React from 'react';
-import { isEmpty, reduce, isFunction, constant, transform, isObject, mapValues } from 'lodash';
+import {
+	get as g,
+	isEmpty,
+	reduce,
+	isFunction,
+	constant,
+	transform,
+	isObject,
+	mapValues,
+	isPlainObject,
+	includes,
+	cloneDeep,
+	pull,
+} from 'lodash';
 import dot from 'dot-object';
 import { reduxForm, stopSubmit } from 'redux-form';
-import { compose, withProps, lifecycle, withHandlers } from 'recompose';
+import { compose, withProps, lifecycle, withHandlers, setDisplayName } from 'recompose';
 import omitProps from 'utils/omitProps';
 import { connect } from 'react-redux';
 
 import validateByJsonSchema from '../validateByJsonSchema';
 import mergeWithArrays from '../mergeWithArrays';
 import normalizeEmptyValues from '../normalizeEmptyValues';
+import assignDefaultsToObjectProperties from '../assignDefaultsToObjectProperties';
 
 const deepMap = (obj, iterator, context) => transform(
 	obj,
@@ -44,6 +58,11 @@ const withForm = (options = {}) => {
 				errorMessages,
 				validate: userValidate,
 			}) => (values, props) => {
+				const { registeredFields } = props;
+				if (!registeredFields) {
+					// bail early if there are no fields to validate
+					return {};
+				}
 				const {
 					schema: propsSchema,
 					errorMessagesPrefix: propsErrorMessagesPrefix,
@@ -57,13 +76,14 @@ const withForm = (options = {}) => {
 				if (finalErrorMessagesPrefix) {
 					finalErrorMessages = dot.pick(finalErrorMessagesPrefix, dot.object({ ...finalErrorMessages }));
 				}
-				const finalSchema = propsSchema || schema;
-				const normalizedValues = normalizeEmptyValues(values, finalSchema);
+				let finalSchema = propsSchema || schema;
+				let normalizedValues = normalizeEmptyValues(values, finalSchema);
+				normalizedValues = assignDefaultsToObjectProperties(normalizedValues, finalSchema, registeredFields);
 
 				const validateJsonSchemaErrors = wrapAsErrors(
 					validateByJsonSchema(
 						normalizedValues,
-						propsSchema || schema,
+						finalSchema,
 						finalErrorMessages
 					),
 				);
@@ -113,8 +133,8 @@ const withForm = (options = {}) => {
 				checkErrors(currentErrors, nextErrors, nextSubmitFailed);
 			}
 		}),
-		omitProps(['schema', 'errorMessagesPrefix', 'errorMessages', 'userValidate', 'checkErrors']),
-		reduxForm(),
+		omitProps(['errorMessagesPrefix', 'errorMessages', 'userValidate', 'checkErrors']),
+		reduxForm({ shouldValidate: () => true }),
 	);
 };
 

@@ -15,6 +15,10 @@ export default function (dataToValidate, schema: JsonSchema = {}, errorMessages:
 		(acc, err) => {
 			let errorPath;
 
+			if(err.name === 'allOf' || err.name === 'anyOf') {
+				return acc;
+			}
+
 			if (err.name === 'required') {
 				errorPath = `${err.property}.${err.argument}`;
 
