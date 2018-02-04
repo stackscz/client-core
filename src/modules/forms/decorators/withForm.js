@@ -84,7 +84,9 @@ const withForm = (options = {}) => {
 					validateByJsonSchema(
 						normalizedValues,
 						finalSchema,
-						finalErrorMessages
+						finalErrorMessages,
+						options.requiredPaths,
+						options.notRequiredPaths,
 					),
 				);
 

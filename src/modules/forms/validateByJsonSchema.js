@@ -5,17 +5,17 @@ import mergeWithArrays from 'modules/forms/mergeWithArrays';
 import type { JsonSchema } from 'modules/forms/types/JsonSchema';
 import type { FormErrorMessages } from 'modules/forms/types/FormErrorMessages';
 
-export default function (dataToValidate, schema: JsonSchema = {}, errorMessages: FormErrorMessages = {}) {
+export default function (dataToValidate, schema: JsonSchema = {}, errorMessages: FormErrorMessages = {}, requiredPaths = [], notRequiredPaths = []) {
 	const validate = jsonschema.validate(dataToValidate, schema);
 	if (validate.valid) {
 		return {};
 	}
 
-	const dotNotationErrors = validate.errors.reduce(
+	let dotNotationErrors = validate.errors.reduce(
 		(acc, err) => {
 			let errorPath;
 
-			if(err.name === 'allOf' || err.name === 'anyOf') {
+			if (err.name === 'allOf' || err.name === 'anyOf') {
 				return acc;
 			}
 
@@ -55,6 +55,26 @@ export default function (dataToValidate, schema: JsonSchema = {}, errorMessages:
 			);
 		},
 		{}
+	);
+
+	dotNotationErrors = notRequiredPaths.reduce(
+		(acc, errorKey) => {
+			if (acc[errorKey] === 'required') {
+				delete acc[errorKey];
+			}
+			return acc;
+		},
+		dotNotationErrors,
+	);
+
+	dotNotationErrors = requiredPaths.reduce(
+		(acc, errorKey) => {
+			if (acc[errorKey] !== 'required' && !g(dataToValidate, errorKey)) {
+				acc[errorKey] = 'required';
+			}
+			return acc;
+		},
+		dotNotationErrors,
 	);
 
 	const errors = dot.object(dotNotationErrors);
