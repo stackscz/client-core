@@ -136,7 +136,30 @@ const withForm = (options = {}) => {
 			}
 		}),
 		omitProps(['errorMessagesPrefix', 'errorMessages', 'userValidate', 'checkErrors']),
-		reduxForm({ shouldValidate: () => true }),
+		reduxForm(
+			{
+				shouldValidate: ({
+					values,
+					nextProps,
+					props,
+					initialRender,
+					lastFieldValidatorKeys,
+					fieldValidatorKeys,
+					structure
+				}) => {
+					// debugger;
+					if (initialRender) {
+						return true
+					}
+					return (
+						!structure.deepEqual(values, nextProps && nextProps.values) ||
+						!structure.deepEqual(props.registeredFields, nextProps && nextProps.registeredFields) ||
+						!structure.deepEqual(lastFieldValidatorKeys, fieldValidatorKeys)
+					)
+				},
+			},
+		),
+		// reduxForm(),
 	);
 };
 
