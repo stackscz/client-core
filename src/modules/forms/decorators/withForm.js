@@ -43,6 +43,16 @@ const withForm = (options = {}) => {
 		withProps((props) => {
 			return isFunction(options) ? options(props) : options;
 		}),
+		withProps(
+			({ initialValues }) => {
+				return {
+					initialValues: deepMap(
+						initialValues,
+						(v) => v === null ? undefined : v,
+					),
+				};
+			}
+		),
 		connect(
 			false,
 			(dispatch) => ({
