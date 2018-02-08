@@ -14,10 +14,12 @@ import {
 	pull,
 } from 'lodash';
 import dot from 'dot-object';
-import { reduxForm, stopSubmit } from 'redux-form';
-import { compose, withProps, lifecycle, withHandlers, setDisplayName } from 'recompose';
+import { reduxForm, startSubmit, stopSubmit } from 'redux-form';
+import { compose, withProps, lifecycle, withHandlers, setDisplayName, withPropsOnChange } from 'recompose';
 import omitProps from 'utils/omitProps';
 import { connect } from 'react-redux';
+
+import doOnPropsChange from 'utils/doOnPropsChange';
 
 import validateByJsonSchema from '../validateByJsonSchema';
 import mergeWithArrays from '../mergeWithArrays';
@@ -53,14 +55,22 @@ const withForm = (options = {}) => {
 				};
 			}
 		),
-		connect(
-			false,
-			(dispatch) => ({
-				setExternalErrors: (targetForm, errors) => {
-					dispatch(stopSubmit(targetForm, errors));
-				},
-			})
+		connect(),
+		doOnPropsChange(
+			['isBusy'],
+			({ dispatch, form, isBusy }) => {
+				if (isBusy) {
+					dispatch(startSubmit(form));
+				} else {
+					dispatch(stopSubmit(form));
+				}
+			},
 		),
+		withHandlers({
+			setExternalErrors: ({ dispatch }) => (targetForm, errors) => {
+				dispatch(stopSubmit(targetForm, errors));
+			},
+		}),
 		withHandlers({
 			validate: ({
 				schema,
