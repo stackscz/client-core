@@ -15,10 +15,12 @@ import {
 	noop,
 } from 'lodash';
 import dot from 'dot-object';
-import { reduxForm, stopSubmit } from 'redux-form';
-import { compose, withProps, lifecycle, withHandlers, setDisplayName, getContext } from 'recompose';
+import { reduxForm, startSubmit, stopSubmit } from 'redux-form';
+import { compose, withProps, lifecycle, withHandlers, setDisplayName, getContext, withPropsOnChange } from 'recompose';
 import omitProps from 'utils/omitProps';
 import { connect } from 'react-redux';
+
+import doOnPropsChange from 'utils/doOnPropsChange';
 
 import validateByJsonSchema from '../validateByJsonSchema';
 import mergeWithArrays from '../mergeWithArrays';
@@ -62,9 +64,11 @@ const combineWithFieldsSchemas = (mainSchema, fieldsSchemasMap) => {
 
 const withForm = (options = {}) => {
 	return compose(
-		withProps((props) => {
-			return isFunction(options) ? options(props) : options;
-		}),
+		withProps(
+			(props) => {
+				return isFunction(options) ? options(props) : options;
+			},
+		),
 		withProps(
 			({ initialValues }) => {
 				return {
@@ -75,13 +79,13 @@ const withForm = (options = {}) => {
 				};
 			}
 		),
-		connect(
-			(state, { form }) => ({ fieldsSchemas: g(state, ['formFieldsSchemas', form]) }),
-			(dispatch) => ({
-				setExternalErrors: (targetForm, errors) => {
+		connect(),
+		withHandlers(
+			{
+				setExternalErrors: ({ dispatch }) => (targetForm, errors) => {
 					dispatch(stopSubmit(targetForm, errors));
 				},
-			})
+			},
 		),
 		withHandlers(
 			{
@@ -162,17 +166,19 @@ const withForm = (options = {}) => {
 				}
 			}
 		),
-		lifecycle({
-			componentWillMount() {
-				const { errors: nextErrors, checkErrors } = this.props;
-				checkErrors({}, nextErrors, false);
+		lifecycle(
+			{
+				componentWillMount() {
+					const { errors: nextErrors, checkErrors } = this.props;
+					checkErrors({}, nextErrors, false);
+				},
+				componentWillReceiveProps(nextProps) {
+					const { errors: currentErrors, checkErrors } = this.props;
+					const { errors: nextErrors, submitFailed: nextSubmitFailed } = nextProps;
+					checkErrors(currentErrors, nextErrors, nextSubmitFailed);
+				}
 			},
-			componentWillReceiveProps(nextProps) {
-				const { errors: currentErrors, checkErrors } = this.props;
-				const { errors: nextErrors, submitFailed: nextSubmitFailed } = nextProps;
-				checkErrors(currentErrors, nextErrors, nextSubmitFailed);
-			}
-		}),
+		),
 		omitProps(['errorMessagesPrefix', 'errorMessages', 'userValidate', 'checkErrors']),
 		reduxForm(
 			{
@@ -197,6 +203,16 @@ const withForm = (options = {}) => {
 					// console.log('SHOULD VALIDATE', shouldValidate);
 					return shouldValidate;
 				},
+			},
+		),
+		doOnPropsChange(
+			['isBusy'],
+			({ dispatch, form, isBusy }) => {
+				if (isBusy) {
+					dispatch(startSubmit(form));
+				} else {
+					dispatch(stopSubmit(form));
+				}
 			},
 		),
 	);
