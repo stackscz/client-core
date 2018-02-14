@@ -1,17 +1,32 @@
-import { get as g, isPlainObject, cloneDeep, reduce, setWith } from 'lodash';
-import jsonschema from 'jsonschema';
+import { get as g, isPlainObject, cloneDeep, reduce, setWith, omitBy } from 'lodash';
+import { Validator } from 'jsonschema';
 import dot from 'dot-object';
 import mergeWithArrays from 'modules/forms/mergeWithArrays';
 import type { JsonSchema } from 'modules/forms/types/JsonSchema';
 import type { FormErrorMessages } from 'modules/forms/types/FormErrorMessages';
 
+const validator = new Validator();
+const originalAnyOf = validator.attributes.anyOf;
+validator.attributes.anyOf = function (data, schema, ...args) {
+	// @FIXME use only option in typeName enum as match for typeName instead of schema title, make typeName property name configurable
+	if (!isPlainObject(data) || !data.typeName) {
+		return originalAnyOf.apply(this, [data, schema, ...args]);
+	}
+	const typeName = data.typeName;
+	const concreteSchema = schema.anyOf.reduce((acc, subSchema) => subSchema.title === typeName ? subSchema : acc, null);
+	if (!concreteSchema) {
+		return originalAnyOf.apply(this, [data, schema, ...args]);
+	}
+	return this.validate(data, concreteSchema, ...args);
+};
+
 export default function (dataToValidate, schema: JsonSchema = {}, errorMessages: FormErrorMessages = {}, requiredPaths = [], notRequiredPaths = []) {
-	const validate = jsonschema.validate(dataToValidate, schema);
-	if (validate.valid) {
+	const validationResult = validator.validate(dataToValidate, schema);
+	if (validationResult.valid) {
 		return {};
 	}
 
-	let dotNotationErrors = validate.errors.reduce(
+	let dotNotationErrors = validationResult.errors.reduce(
 		(acc, err) => {
 			let errorPath;
 
@@ -75,6 +90,13 @@ export default function (dataToValidate, schema: JsonSchema = {}, errorMessages:
 			return acc;
 		},
 		dotNotationErrors,
+	);
+
+	dotNotationErrors = omitBy(
+		dotNotationErrors,
+		(error, key) => {
+			return key.endsWith('typeName');
+		},
 	);
 
 	const errors = dot.object(dotNotationErrors);
