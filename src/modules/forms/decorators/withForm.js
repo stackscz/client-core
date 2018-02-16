@@ -67,6 +67,8 @@ const withForm = (options = {}) => {
 				errorMessagesPrefix,
 				errorMessages,
 				validate: userValidate,
+				notRequiredPaths,
+				requiredPaths,
 			}) => (values, props) => {
 				const { registeredFields } = props;
 				if (!registeredFields) {
@@ -95,8 +97,8 @@ const withForm = (options = {}) => {
 						normalizedValues,
 						finalSchema,
 						finalErrorMessages,
-						options.requiredPaths,
-						options.notRequiredPaths,
+						requiredPaths,
+						notRequiredPaths,
 					),
 				);
 
