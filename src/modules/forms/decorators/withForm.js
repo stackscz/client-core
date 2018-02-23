@@ -163,11 +163,13 @@ const withForm = (options = {}) => {
 					if (initialRender) {
 						return true
 					}
-					return (
+					const shouldValidate = (
 						!structure.deepEqual(values, nextProps && nextProps.values) ||
 						!structure.deepEqual(props.registeredFields, nextProps && nextProps.registeredFields) ||
 						!structure.deepEqual(lastFieldValidatorKeys, fieldValidatorKeys)
-					)
+					);
+					// console.log('SHOULD VALIDATE', shouldValidate);
+					return shouldValidate;
 				},
 			},
 		),

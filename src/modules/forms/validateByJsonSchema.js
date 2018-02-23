@@ -1,4 +1,4 @@
-import { get as g, isPlainObject, cloneDeep, reduce, setWith, omitBy } from 'lodash';
+import { get as g, isPlainObject, cloneDeep, reduce, setWith, omitBy, without } from 'lodash';
 import { Validator } from 'jsonschema';
 import dot from 'dot-object';
 import mergeWithArrays from 'modules/forms/mergeWithArrays';
@@ -9,10 +9,10 @@ const validator = new Validator();
 const originalAnyOf = validator.attributes.anyOf;
 validator.attributes.anyOf = function (data, schema, ...args) {
 	// @FIXME use only option in typeName enum as match for typeName instead of schema title, make typeName property name configurable
-	if (!isPlainObject(data) || !data.typeName) {
+	if (!isPlainObject(data) || !data.__typename) {
 		return originalAnyOf.apply(this, [data, schema, ...args]);
 	}
-	const typeName = data.typeName;
+	const typeName = data.__typename;
 	const concreteSchema = schema.anyOf.reduce((acc, subSchema) => subSchema.title === typeName ? subSchema : acc, null);
 	if (!concreteSchema) {
 		return originalAnyOf.apply(this, [data, schema, ...args]);
@@ -20,11 +20,23 @@ validator.attributes.anyOf = function (data, schema, ...args) {
 	return this.validate(data, concreteSchema, ...args);
 };
 
+const originalRequired = validator.attributes.required;
+validator.attributes.required = function (data, schema, options, ctx) {
+	const readOnly = g(schema, 'x-readOnly');
+	if (Array.isArray(readOnly)) {
+		const required = without(g(schema, 'required', []), ...g(schema, 'x-readOnly', []));
+		return originalRequired.apply(this, [data, { ...schema, required }, options, ctx]);
+	}
+	return originalRequired.apply(this, [data, schema, options, ctx]);
+};
+
 export default function (dataToValidate, schema: JsonSchema = {}, errorMessages: FormErrorMessages = {}, requiredPaths = [], notRequiredPaths = []) {
 	const validationResult = validator.validate(dataToValidate, schema);
 	if (validationResult.valid) {
 		return {};
 	}
+
+	// console.log('VALIDATING', dataToValidate);
 
 	let dotNotationErrors = validationResult.errors.reduce(
 		(acc, err) => {
@@ -100,6 +112,8 @@ export default function (dataToValidate, schema: JsonSchema = {}, errorMessages:
 	);
 
 	const errors = dot.object(dotNotationErrors);
+
+	// console.log('NEW ERRORS', errors);
 
 	return errors;
 }
