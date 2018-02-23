@@ -23,11 +23,21 @@ validator.attributes.anyOf = function (data, schema, ...args) {
 const originalRequired = validator.attributes.required;
 validator.attributes.required = function (data, schema, options, ctx) {
 	const readOnly = g(schema, 'x-readOnly');
+	let finalSchema = schema;
 	if (Array.isArray(readOnly)) {
 		const required = without(g(schema, 'required', []), ...g(schema, 'x-readOnly', []));
-		return originalRequired.apply(this, [data, { ...schema, required }, options, ctx]);
+		finalSchema = { ...schema, required };
 	}
-	return originalRequired.apply(this, [data, schema, options, ctx]);
+	const finalData = data && omitBy(data, (v) => v === null);
+	return originalRequired.apply(this, [finalData, finalSchema, options, ctx]);
+};
+
+const originalType = validator.attributes.type;
+validator.attributes.type = function (data, schema, options, ctx) {
+	if (data === null) {
+		return [];
+	}
+	return originalType.apply(this, [data, schema, options, ctx]);
 };
 
 export default function (dataToValidate, schema: JsonSchema = {}, errorMessages: FormErrorMessages = {}, requiredPaths = [], notRequiredPaths = []) {
