@@ -1,6 +1,6 @@
 {
   "name": "client-core",
-  "version": "1.0.0-dev.8",
+  "version": "1.0.0-dev.9",
   "main": "lib/index.js",
   "repository": "https://gitlab.stacks.cz/brabeji/client-core.git",
   "author": "Jiri Brabec <brabeji@gmail.com>",
@@ -13,7 +13,7 @@
   "dependencies": {
     "axios": "^0.16.0",
     "date-fns": "^1.28.2",
-    "dot-object": "^1.5.4",
+    "dot-object": "^1.7.0",
     "fast-memoize": "^2.2.7",
     "invariant": "^2.2.2",
     "jsonschema": "^1.2.2",

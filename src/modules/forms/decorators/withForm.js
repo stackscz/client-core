@@ -25,7 +25,7 @@ import doOnPropsChange from 'utils/doOnPropsChange';
 import validateByJsonSchema from '../validateByJsonSchema';
 import mergeWithArrays from '../mergeWithArrays';
 import normalizeEmptyValues from '../normalizeEmptyValues';
-import assignDefaultsToObjectProperties from '../assignDefaultsToObjectProperties';
+import normalizeValuesToValidate from '../normalizeValuesToValidate';
 
 const deepMap = (obj, iterator, context) => transform(
 	obj,
@@ -119,7 +119,7 @@ const withForm = (options = {}) => {
 					let finalSchema = propsSchema || schema;
 					finalSchema = combineWithFieldsSchemas(finalSchema, fieldsSchemas);
 					let normalizedValues = normalizeEmptyValues(values, finalSchema);
-					normalizedValues = assignDefaultsToObjectProperties(normalizedValues, finalSchema, registeredFields);
+					normalizedValues = normalizeValuesToValidate(normalizedValues, finalSchema, registeredFields);
 
 					const validateJsonSchemaErrors = wrapAsErrors(
 						validateByJsonSchema(
