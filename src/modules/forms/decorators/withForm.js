@@ -79,7 +79,7 @@ const withForm = (options = {}) => {
 				};
 			}
 		),
-		connect(),
+		connect((state, { form }) => ({ fieldsSchemas: g(state, ['formFieldsSchemas', form]) })),
 		withHandlers(
 			{
 				setExternalErrors: ({ dispatch }) => (targetForm, errors) => {
