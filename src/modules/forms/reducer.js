@@ -26,7 +26,7 @@ export default createReducer(
 				schema: t.Any,
 			}),
 			(state, { payload: { form, name } }) => {
-				return state.setIn([form, name], undefined);
+				return state.update(form, (f) => f.without(name));
 			},
 		],
 	},
