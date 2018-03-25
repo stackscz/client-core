@@ -21,7 +21,7 @@ const normalizeEmptyValues = (data, schema) => {
 		}
 
 		// recursively walk inner object properties
-		if (type === 'object') {
+		if (type === 'object' && propertyValue) {
 			return {
 				...acc,
 				[propertyName]: normalizeEmptyValues(propertyValue, propertySchema),
