@@ -1,4 +1,4 @@
-import { get as g, reduce, isString } from 'lodash';
+import { get as g, reduce, isString, map } from 'lodash';
 
 /**
  * Omits empty string properties ("")
@@ -25,6 +25,23 @@ const normalizeEmptyValues = (data, schema) => {
 			return {
 				...acc,
 				[propertyName]: normalizeEmptyValues(propertyValue, propertySchema),
+			}
+		}
+
+		if (type === 'array') {
+			const arrayOfType = g(propertySchema, 'items');
+
+			if (isString(arrayOfType)) { // means array of 'string', 'number' etc
+				return {
+					...acc,
+					[propertyName]: propertyValue,
+				};
+			}
+
+			// otherwise arrayOfType is actually schema
+			return {
+				...acc,
+				[propertyName]: map(propertyValue, (arrayItem) => normalizeEmptyValues(arrayItem, arrayOfType)),
 			}
 		}
 
