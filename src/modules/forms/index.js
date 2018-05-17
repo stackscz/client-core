@@ -1,9 +1,10 @@
-import { reducer as formReducer } from 'redux-form';
+import createReducer from 'redux-form/lib/createReducer';
+import plain from './plainStructure';
 import formFieldsSchemas from './reducer';
 
 export default {
 	reducers: {
-		form: formReducer,
+		form: createReducer(plain),
 		formFieldsSchemas,
 	}
 };

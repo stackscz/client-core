@@ -1,4 +1,5 @@
 import { get as g, reduce, isString } from 'lodash';
+import Immutable from 'immutable';
 
 /**
  * Omits empty string properties ("")
@@ -11,6 +12,10 @@ import { get as g, reduce, isString } from 'lodash';
  * @return {{}}
  */
 const normalizeEmptyValues = (data, schema) => {
+	if (Immutable.Iterable.isIterable(data)) {
+		return data;
+	};
+
 	return reduce(data, (acc, propertyValue, propertyName) => {
 		const propertySchema = g(schema, ['properties', propertyName]);
 		const type = g(propertySchema, 'type');
