@@ -1,4 +1,5 @@
-import { get as g, set, isPlainObject, reduce, mapValues, cloneDeep } from 'lodash';
+import { get as g, set, isPlainObject, reduce, mapValues, clone, cloneDeepWith } from 'lodash';
+import Immutable from 'immutable';
 import dot from 'dot-object';
 
 const normalizeValuesToValidate = (data, schema, registeredFields) => {
@@ -12,10 +13,21 @@ const normalizeValuesToValidate = (data, schema, registeredFields) => {
 	Object.keys(registeredFields).forEach(
 		(fieldPath) => {
 			const fieldType = registeredFields[fieldPath].type;
-			const fieldValue = cloneDeep(g(data, fieldPath)); // dot-object mutates arguments 🙄
+			const originalFieldValue = g(data, fieldPath);
+			let fieldValue;
+
+			fieldValue = cloneDeepWith(originalFieldValue, (value) => {
+				if (Immutable.Iterable.isIterable(value)) {
+					return {};
+				}
+
+				return clone(value);
+			}); // dot-object mutates arguments 🙄
+
 			set(dataToValidate, fieldPath, fieldType === 'FieldArray' ? (fieldValue || []) : fieldValue);
 		},
 	);
+
 	return dataToValidate;
 };
 

@@ -13,12 +13,21 @@ import {
 	cloneDeep,
 	pull,
 	noop,
+	isEqualWith,
+	debounce,
+	size,
+	pick,
+	reduceRight,
+	startsWith,
 } from 'lodash';
 import dot from 'dot-object';
-import { reduxForm, startSubmit, stopSubmit } from 'redux-form';
+import { startSubmit, stopSubmit } from 'redux-form';
+import createReduxForm from 'redux-form/lib/createReduxForm';
+import reduxFormStructure from '../plainStructure';
 import { compose, withProps, lifecycle, withHandlers, setDisplayName, getContext, withPropsOnChange } from 'recompose';
 import omitProps from 'utils/omitProps';
 import { connect } from 'react-redux';
+import Immutable from 'immutable';
 
 import doOnPropsChange from 'utils/doOnPropsChange';
 
@@ -27,9 +36,15 @@ import mergeWithArrays from '../mergeWithArrays';
 import normalizeEmptyValues from '../normalizeEmptyValues';
 import normalizeValuesToValidate from '../normalizeValuesToValidate';
 
+const reduxForm = createReduxForm(reduxFormStructure);
+
 const deepMap = (obj, iterator, context) => transform(
 	obj,
 	function (result, val, key) {
+		if (Immutable.Iterable.isIterable(val)) {
+			result[key] = val;
+			return;
+		}
 		result[key] = isObject(val) ? deepMap(val, iterator, context) : iterator.call(context, val, key, obj);
 	},
 );
@@ -62,6 +77,77 @@ const combineWithFieldsSchemas = (mainSchema, fieldsSchemasMap) => {
 	}
 };
 
+const debouncedValidation = debounce(({
+	values,
+	props,
+	schema,
+	errorMessagesPrefix,
+	errorMessages,
+	userValidate,
+	notRequiredPaths,
+	requiredPaths,
+	fieldsSchemas,
+}, cb) => {
+	const { registeredFields } = props;
+	if (!registeredFields) {
+		// bail early if there are no fields to validate
+		return {};
+	}
+	const {
+		schema: propsSchema,
+		errorMessagesPrefix: propsErrorMessagesPrefix,
+		errorMessages: propsErrorMessages,
+		userValidate: propsUserValidate,
+	} = props;
+	const finalUserValidate = propsUserValidate || userValidate;
+
+	const finalErrorMessagesPrefix = propsErrorMessagesPrefix || errorMessagesPrefix;
+	let finalErrorMessages = propsErrorMessages || errorMessages;
+	if (finalErrorMessagesPrefix) {
+		finalErrorMessages = dot.pick(finalErrorMessagesPrefix, dot.object({ ...finalErrorMessages }));
+	}
+	let finalSchema = propsSchema || schema;
+	finalSchema = combineWithFieldsSchemas(finalSchema, fieldsSchemas);
+	let normalizedValues = normalizeEmptyValues(values, finalSchema);
+	normalizedValues = normalizeValuesToValidate(normalizedValues, finalSchema, registeredFields);
+
+	const validateJsonSchemaErrors = wrapAsErrors(
+		validateByJsonSchema(
+			normalizedValues,
+			finalSchema,
+			finalErrorMessages,
+			requiredPaths,
+			notRequiredPaths,
+		),
+	);
+
+	let userValidateErrors = {};
+	if (finalUserValidate) {
+		const userValidateErrorsUnwrapped = finalUserValidate(values, props);
+		const userValidateErrorsUnwrappedDot = dot.dot(userValidateErrorsUnwrapped);
+		const userValidateErrorsUnwrappedDotTranslated = mapValues(
+			userValidateErrorsUnwrappedDot,
+			(errorName, propertyPath) => dot.pick(`${propertyPath}.${errorName}`, errorMessages) || `${errorName}`,
+		);
+		const userValidateErrorsUnwrappedTranslated = dot.object(userValidateErrorsUnwrappedDotTranslated);
+		userValidateErrors = wrapAsErrors(userValidateErrorsUnwrappedTranslated);
+	}
+
+	const finalUserValidateErrors = dot.object(
+		reduce(
+			dot.dot(userValidateErrors),
+			(result, value, key) => {
+				const path = `${key}.${value}`;
+				result[key] = dot.pick(path, finalErrorMessages) || value; // eslint-disable-line no-param-reassign
+				return result;
+			},
+			{}
+		)
+	);
+
+	cb(mergeWithArrays({}, validateJsonSchemaErrors, finalUserValidateErrors));
+}, 500);
+
 const withForm = (options = {}) => {
 	return compose(
 		withProps(
@@ -89,7 +175,7 @@ const withForm = (options = {}) => {
 		),
 		withHandlers(
 			{
-				validate: ({
+				asyncValidate: ({
 					schema,
 					errorMessagesPrefix,
 					errorMessages,
@@ -97,65 +183,61 @@ const withForm = (options = {}) => {
 					notRequiredPaths,
 					requiredPaths,
 					fieldsSchemas,
-				}) => (values, props) => {
+				}) => (values, _, props) => {
 					const { registeredFields } = props;
-					if (!registeredFields) {
-						// bail early if there are no fields to validate
-						return {};
-					}
-					const {
-						schema: propsSchema,
-						errorMessagesPrefix: propsErrorMessagesPrefix,
-						errorMessages: propsErrorMessages,
-						userValidate: propsUserValidate,
-					} = props;
-					const finalUserValidate = propsUserValidate || userValidate;
+					let resolve;
+					let reject;
 
-					const finalErrorMessagesPrefix = propsErrorMessagesPrefix || errorMessagesPrefix;
-					let finalErrorMessages = propsErrorMessages || errorMessages;
-					if (finalErrorMessagesPrefix) {
-						finalErrorMessages = dot.pick(finalErrorMessagesPrefix, dot.object({ ...finalErrorMessages }));
-					}
-					let finalSchema = propsSchema || schema;
-					finalSchema = combineWithFieldsSchemas(finalSchema, fieldsSchemas);
-					let normalizedValues = normalizeEmptyValues(values, finalSchema);
-					normalizedValues = normalizeValuesToValidate(normalizedValues, finalSchema, registeredFields);
+					debouncedValidation({
+						values,
+						props,
+						schema,
+						errorMessagesPrefix,
+						errorMessages,
+						userValidate,
+						notRequiredPaths,
+						requiredPaths,
+						fieldsSchemas,
+					}, (errors) => {
+						const tmp = reduceRight(Object.keys(registeredFields).sort(), (acc, path) => {
+							if (startsWith(g(acc, 'prevPath'), path)) {
+								return {
+									...acc,
+									prevPath: path,
+								};
+							}
 
-					const validateJsonSchemaErrors = wrapAsErrors(
-						validateByJsonSchema(
-							normalizedValues,
-							finalSchema,
-							finalErrorMessages,
-							requiredPaths,
-							notRequiredPaths,
-						),
-					);
+							const picked = dot.pick(path, errors);
+							if (!picked) {
+								return {
+									...acc,
+									prevPath: path,
+								};
+							}
 
-					let userValidateErrors = {};
-					if (finalUserValidate) {
-						const userValidateErrorsUnwrapped = finalUserValidate(values, props);
-						const userValidateErrorsUnwrappedDot = dot.dot(userValidateErrorsUnwrapped);
-						const userValidateErrorsUnwrappedDotTranslated = mapValues(
-							userValidateErrorsUnwrappedDot,
-							(errorName, propertyPath) => dot.pick(`${propertyPath}.${errorName}`, errorMessages) || `${errorName}`,
-						);
-						const userValidateErrorsUnwrappedTranslated = dot.object(userValidateErrorsUnwrappedDotTranslated);
-						userValidateErrors = wrapAsErrors(userValidateErrorsUnwrappedTranslated);
-					}
+							return {
+								result: {
+									...g(acc, 'result'),
+									[path]: picked,
+								},
+								prevPath: path,
+							};
+						}, { result: {}, prevPath: '' });
 
-					const finalUserValidateErrors = dot.object(
-						reduce(
-							dot.dot(userValidateErrors),
-							(result, value, key) => {
-								const path = `${key}.${value}`;
-								result[key] = dot.pick(path, finalErrorMessages) || value; // eslint-disable-line no-param-reassign
-								return result;
-							},
-							{}
-						)
-					);
+						const finalErrors = dot.object(g(tmp, 'result'));
 
-					return mergeWithArrays({}, validateJsonSchemaErrors, finalUserValidateErrors);
+						if (size(finalErrors)) {
+							reject(finalErrors);
+						} else {
+							resolve();
+						}
+					});
+
+					return new Promise((res, rej) => {
+						resolve = res;
+						reject = rej;
+					});
+
 				},
 				checkErrors: ({ setExternalErrors, form: formName }) => (currentErrors, nextErrors, nextSubmitFailed) => {
 					if (
@@ -179,30 +261,35 @@ const withForm = (options = {}) => {
 				}
 			},
 		),
+		withProps(({ registeredFields }) => {
+			return {
+				asyncChangeFields: registeredFields,
+			};
+		}),
 		omitProps(['errorMessagesPrefix', 'errorMessages', 'userValidate', 'checkErrors']),
 		reduxForm(
 			{
-				shouldValidate: ({
-					values,
-					nextProps,
-					props,
-					initialRender,
-					lastFieldValidatorKeys,
-					fieldValidatorKeys,
-					structure
-				}) => {
-					// debugger;
-					if (initialRender) {
-						return true
-					}
-					const shouldValidate = (
-						!structure.deepEqual(values, nextProps && nextProps.values) ||
-						!structure.deepEqual(props.registeredFields, nextProps && nextProps.registeredFields) ||
-						!structure.deepEqual(lastFieldValidatorKeys, fieldValidatorKeys)
-					);
-					// console.log('SHOULD VALIDATE', shouldValidate);
-					return shouldValidate;
-				},
+				// shouldValidate: ({
+				// 	values,
+				// 	nextProps,
+				// 	props,
+				// 	initialRender,
+				// 	lastFieldValidatorKeys,
+				// 	fieldValidatorKeys,
+				// 	structure
+				// }) => {
+				// 	// debugger;
+				// 	if (initialRender) {
+				// 		return true
+				// 	}
+				// 	const shouldValidate = (
+				// 		!structure.deepEqual(values, nextProps && nextProps.values) ||
+				// 		!structure.deepEqual(props.registeredFields, nextProps && nextProps.registeredFields) ||
+				// 		!structure.deepEqual(lastFieldValidatorKeys, fieldValidatorKeys)
+				// 	);
+				// 	// console.log('SHOULD VALIDATE', shouldValidate);
+				// 	return shouldValidate;
+				// },
 			},
 		),
 		doOnPropsChange(
