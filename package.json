@@ -1,6 +1,6 @@
 {
   "name": "client-core",
-  "version": "1.0.0-dev.13",
+  "version": "1.0.0-dev.14",
   "main": "lib/index.js",
   "repository": "https://gitlab.stacks.cz/brabeji/client-core.git",
   "author": "Jiri Brabec <brabeji@gmail.com>",
