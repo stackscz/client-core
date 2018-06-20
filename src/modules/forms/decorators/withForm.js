@@ -23,6 +23,7 @@ import {
 import dot from 'dot-object';
 import { startSubmit, stopSubmit } from 'redux-form';
 import createReduxForm from 'redux-form/lib/createReduxForm';
+import SubmissionError from 'redux-form/lib/SubmissionError';
 import reduxFormStructure from '../plainStructure';
 import { compose, withProps, lifecycle, withHandlers, setDisplayName, getContext, withPropsOnChange } from 'recompose';
 import omitProps from 'utils/omitProps';
@@ -77,7 +78,7 @@ const combineWithFieldsSchemas = (mainSchema, fieldsSchemasMap) => {
 	}
 };
 
-const debouncedValidation = debounce(({
+const validation = ({
 	values,
 	props,
 	schema,
@@ -146,7 +147,41 @@ const debouncedValidation = debounce(({
 	);
 
 	cb(mergeWithArrays({}, validateJsonSchemaErrors, finalUserValidateErrors));
-}, 500);
+};
+
+const normalizeErrors = ({
+	registeredFields,
+	errors,
+}) => {
+	const tmp = reduceRight(Object.keys(registeredFields).sort(), (acc, path) => {
+		if (startsWith(g(acc, 'prevPath'), path)) {
+			return {
+				...acc,
+				prevPath: path,
+			};
+		}
+
+		const picked = dot.pick(path, errors);
+		if (!picked) {
+			return {
+				...acc,
+				prevPath: path,
+			};
+		}
+
+		return {
+			result: {
+				...g(acc, 'result'),
+				[path]: picked,
+			},
+			prevPath: path,
+		};
+	}, { result: {}, prevPath: '' });
+
+	return dot.object(g(tmp, 'result'));
+};
+
+const debouncedValidation = debounce(validation, 500);
 
 const withForm = (options = {}) => {
 	return compose(
@@ -173,22 +208,20 @@ const withForm = (options = {}) => {
 				},
 			},
 		),
-		withHandlers(
-			{
-				asyncValidate: ({
-					schema,
-					errorMessagesPrefix,
-					errorMessages,
-					validate: userValidate,
-					notRequiredPaths,
-					requiredPaths,
-					fieldsSchemas,
-				}) => (values, _, props) => {
-					const { registeredFields } = props;
-					let resolve;
-					let reject;
+		withHandlers({
+			monkeyPatchedSubmitFactory: ({
+				schema,
+				errorMessagesPrefix,
+				errorMessages,
+				validate: userValidate,
+				notRequiredPaths,
+				requiredPaths,
+				fieldsSchemas,
+			}) => (onSubmit) => (values, dispatch, props) => {
+				const { registeredFields } = props;
 
-					debouncedValidation({
+				return new Promise((resolve) => {
+					validation({
 						values,
 						props,
 						schema,
@@ -199,54 +232,73 @@ const withForm = (options = {}) => {
 						requiredPaths,
 						fieldsSchemas,
 					}, (errors) => {
-						const tmp = reduceRight(Object.keys(registeredFields).sort(), (acc, path) => {
-							if (startsWith(g(acc, 'prevPath'), path)) {
-								return {
-									...acc,
-									prevPath: path,
-								};
-							}
-
-							const picked = dot.pick(path, errors);
-							if (!picked) {
-								return {
-									...acc,
-									prevPath: path,
-								};
-							}
-
-							return {
-								result: {
-									...g(acc, 'result'),
-									[path]: picked,
-								},
-								prevPath: path,
-							};
-						}, { result: {}, prevPath: '' });
-
-						const finalErrors = dot.object(g(tmp, 'result'));
+						const finalErrors = normalizeErrors({ registeredFields, errors });
 
 						if (size(finalErrors)) {
-							reject(finalErrors);
+							throw new SubmissionError(finalErrors);
 						} else {
 							resolve();
 						}
-					});
-
-					return new Promise((res, rej) => {
-						resolve = res;
-						reject = rej;
-					});
-
-				},
-				checkErrors: ({ setExternalErrors, form: formName }) => (currentErrors, nextErrors, nextSubmitFailed) => {
-					if (
-						!isEmpty(nextErrors) && !nextSubmitFailed && nextErrors !== currentErrors
-					) {
-						setExternalErrors(formName, nextErrors);
-					}
-				}
+					})
+				}).then(() => {
+					return onSubmit(values, dispatch, props);
+				});
 			}
+		}),
+		withHandlers(
+			({ onSubmit, monkeyPatchedSubmitFactory }) => {
+				return {
+					asyncValidate: ({
+						schema,
+						errorMessagesPrefix,
+						errorMessages,
+						validate: userValidate,
+						notRequiredPaths,
+						requiredPaths,
+						fieldsSchemas,
+					}) => (values, _, props) => {
+						const { registeredFields } = props;
+						let resolve;
+						let reject;
+
+						debouncedValidation({
+							values,
+							props,
+							schema,
+							errorMessagesPrefix,
+							errorMessages,
+							userValidate,
+							notRequiredPaths,
+							requiredPaths,
+							fieldsSchemas,
+						}, (errors) => {
+							const finalErrors = normalizeErrors({ registeredFields, errors });
+
+							if (size(finalErrors)) {
+								reject(finalErrors);
+							} else {
+								resolve();
+							}
+						});
+
+						return new Promise((res, rej) => {
+							resolve = res;
+							reject = rej;
+						});
+
+					},
+
+					checkErrors: ({ setExternalErrors, form: formName }) => (currentErrors, nextErrors, nextSubmitFailed) => {
+						if (
+							!isEmpty(nextErrors) && !nextSubmitFailed && nextErrors !== currentErrors
+						) {
+							setExternalErrors(formName, nextErrors);
+						}
+					},
+
+					...(onSubmit ? { onSubmit: () => monkeyPatchedSubmitFactory(onSubmit)} : {}),
+				};
+			},
 		),
 		lifecycle(
 			{
@@ -264,11 +316,27 @@ const withForm = (options = {}) => {
 		withProps(({ registeredFields }) => {
 			return {
 				asyncChangeFields: registeredFields,
+				asyncBlurFields: registeredFields,
 			};
 		}),
 		omitProps(['errorMessagesPrefix', 'errorMessages', 'userValidate', 'checkErrors']),
 		reduxForm(
 			{
+				shouldAsyncValidate: ({
+					trigger,
+					syncValidationPasses,
+				}) => {
+					if (!syncValidationPasses) {
+						return false
+					}
+					switch (trigger) {
+						case 'blur':
+						case 'change':
+							return true;
+						default:
+							return false;
+					}
+				}
 				// shouldValidate: ({
 				// 	values,
 				// 	nextProps,
@@ -292,6 +360,18 @@ const withForm = (options = {}) => {
 				// },
 			},
 		),
+		withHandlers({
+			handleSubmit: ({
+				handleSubmit,
+				monkeyPatchedSubmitFactory,
+			}) => (submitOrEvent) => {
+				if (!submitOrEvent || (submitOrEvent.stopPropagation && submitOrEvent.preventDefault)) {
+					return handleSubmit(submitOrEvent);
+				}
+
+				return handleSubmit(monkeyPatchedSubmitFactory(submitOrEvent));
+			}
+		}),
 		doOnPropsChange(
 			['isBusy'],
 			({ dispatch, form, isBusy }) => {
